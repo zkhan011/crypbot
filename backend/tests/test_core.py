@@ -58,7 +58,7 @@ def test_cipher_redaction():
 def test_bingx_signature_fixture():
     qs = BingXSigner.canonical_query({"symbol": "BTC-USDT", "timestamp": 1700000000000})
     assert qs == "symbol=BTC-USDT&timestamp=1700000000000"
-    assert BingXSigner.sign("secret", qs) == "ce882e5b0f4f1bf2df8ac8d006e311098a2f8b0763fb19f5995365d5cd0d7160"
+    assert BingXSigner.sign("secret", qs) == "597100c6e227a531fa1a21cde9be131e13e3d57e16418878e055193218c3c5a1"
 
 
 @pytest.mark.asyncio

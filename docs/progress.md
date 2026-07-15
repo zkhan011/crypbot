@@ -84,3 +84,20 @@
 - `cd backend && ruff check .` completed successfully.
 - `cd frontend && npm test` was blocked because frontend dependencies are not installed in this environment (`vitest: not found`).
 - `cd backend && PYTHONPATH=. pytest -q` was blocked because third-party backend dependencies are not installed in this environment (`argon2` missing).
+
+## Update on 2026-07-15 adapter trading subsystem
+
+- Added adapter interfaces and mock implementations for exchange, market data, order execution, position management, copy signals, notifications, storage, risk, and strategy engines.
+- Added live-gated BingX adapter path that refuses to initialize unless live trading is explicitly enabled.
+- Added connected backend endpoints for dashboard snapshot, start/stop, pause/resume copy and volume strategies, emergency close-all, reports, and all mock scenarios.
+- Added dashboard mock scenario selector connected to backend behavior, trading engine data, notification previews, reports, open positions, orders, and signals.
+- Added INSTALL, CONFIGURATION, MOCK_DEMO_GUIDE, LIVE_TRADING_SETUP, RISK_DISCLOSURE, and FEATURE_CHECKLIST documentation.
+
+## Validation on 2026-07-15 adapter trading subsystem
+
+- `python -m compileall backend/app backend/tests scripts` completed successfully.
+- `cd backend && ruff format .` completed successfully.
+- `cd backend && ruff check .` completed successfully.
+- `cd backend && PYTHONPATH=. pytest -q` completed successfully with 16 passing tests.
+- `cd frontend && npm test` completed successfully with 3 passing tests.
+- `cd frontend && npm run build` completed successfully.

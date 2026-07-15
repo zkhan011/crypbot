@@ -94,3 +94,12 @@ What the mock live panel shows:
 - Mock market volume, simulated position quantity, notional, and unrealized P&L per symbol.
 
 Important safety note: mock market data is deterministic simulation data. It is not BingX market data, not investment advice, and not evidence of real exchange execution. LIVE mode must only be enabled after the documented approval, reconciliation, credential, security, and compliance gates are complete.
+
+## Additional application guides
+
+- [INSTALL.md](INSTALL.md)
+- [CONFIGURATION.md](CONFIGURATION.md)
+- [MOCK_DEMO_GUIDE.md](MOCK_DEMO_GUIDE.md)
+- [LIVE_TRADING_SETUP.md](LIVE_TRADING_SETUP.md)
+- [RISK_DISCLOSURE.md](RISK_DISCLOSURE.md)
+- [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md)

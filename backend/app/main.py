@@ -14,11 +14,13 @@ from app.services.reconciliation import ReconciliationService
 from app.services.risk import RiskEngine, RiskOrder, RiskProfile
 from app.services.twap import TwapPlan, TwapStrategy
 from app.services.volume_execution import VolumeExecutionPlan, VolumeExecutionStrategy
+from app.services.trading_platform import MockScenario, StrategyName, TradingApplication
 
 settings.validate_startup_security()
 app = FastAPI(title="Crypbot API", version="0.1.0")
 fake_exchange = FakeExchangeClient()
 risk_engine = RiskEngine()
+trading_app = TradingApplication()
 
 
 class VolumeExecutionRequest(BaseModel):
@@ -44,6 +46,56 @@ def ready() -> dict[str, str]:
 @app.get("/metrics")
 def metrics() -> Response:
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get("/api/v1/trading/dashboard")
+def trading_dashboard() -> dict[str, object]:
+    return trading_app.dashboard_snapshot()
+
+
+@app.post("/api/v1/trading/start")
+def trading_start() -> dict[str, object]:
+    return trading_app.start()
+
+
+@app.post("/api/v1/trading/stop")
+def trading_stop() -> dict[str, object]:
+    return trading_app.stop()
+
+
+@app.post("/api/v1/trading/emergency-close-all")
+def trading_emergency_close_all() -> dict[str, object]:
+    return trading_app.emergency_stop()
+
+
+@app.post("/api/v1/trading/copy/pause")
+def trading_pause_copy() -> dict[str, object]:
+    return trading_app.pause_strategy(StrategyName.COPY)
+
+
+@app.post("/api/v1/trading/copy/resume")
+def trading_resume_copy() -> dict[str, object]:
+    return trading_app.resume_strategy(StrategyName.COPY)
+
+
+@app.post("/api/v1/trading/volume/pause")
+def trading_pause_volume() -> dict[str, object]:
+    return trading_app.pause_strategy(StrategyName.VOLUME)
+
+
+@app.post("/api/v1/trading/volume/resume")
+def trading_resume_volume() -> dict[str, object]:
+    return trading_app.resume_strategy(StrategyName.VOLUME)
+
+
+@app.post("/api/v1/trading/mock-scenario/{scenario}")
+def trading_mock_scenario(scenario: MockScenario) -> dict[str, object]:
+    return trading_app.apply_scenario(scenario)
+
+
+@app.get("/api/v1/trading/reports")
+def trading_reports() -> dict[str, object]:
+    return trading_app.reports()
 
 
 @app.get("/api/v1/bot/status")

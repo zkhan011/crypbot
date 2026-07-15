@@ -94,6 +94,23 @@ type MockMarketResponse = {
     simulated_unrealized_pnl: string;
   }>;
 };
+type TradingDashboardResponse = {
+  bot_state: string;
+  copy_state: string;
+  volume_state: string;
+  scenario: string;
+  api_connected: boolean;
+  balance: { asset: string; total: string; available: string };
+  scenario_options: string[];
+  open_positions: Array<Record<string, string>>;
+  closed_trades: Array<Record<string, string>>;
+  signals: Array<Record<string, string>>;
+  orders: Array<Record<string, string>>;
+  notifications: Array<Record<string, string | boolean>>;
+  risk_events: Array<Record<string, string>>;
+  reports: Record<string, unknown>;
+};
+
 type VolumePlanResponse = {
   mode: string;
   objective: string;
@@ -121,6 +138,11 @@ function Dashboard() {
     queryFn: () => api<MockMarketResponse>('/api/v1/mock/market-live'),
     refetchInterval: 3000,
   });
+  const tradingDashboard = useQuery({
+    queryKey: ['trading-dashboard'],
+    queryFn: () => api<TradingDashboardResponse>('/api/v1/trading/dashboard'),
+    refetchInterval: 5000,
+  });
   const action = useMutation({ mutationFn: (run: () => Promise<GenericResponse>) => run() });
   const volumePlan = useMutation({
     mutationFn: () =>
@@ -146,6 +168,16 @@ function Dashboard() {
         run: () => api<GenericResponse>('/api/v1/system/mode/activate-mock', { method: 'POST' }),
       },
       {
+        page: 'Overview',
+        label: 'Start bot',
+        run: () => api<GenericResponse>('/api/v1/trading/start', { method: 'POST' }),
+      },
+      {
+        page: 'Overview',
+        label: 'Stop bot',
+        run: () => api<GenericResponse>('/api/v1/trading/stop', { method: 'POST' }),
+      },
+      {
         page: 'Copy relationships',
         label: 'Simulate copy trade',
         run: () => api<GenericResponse>('/api/v1/demo/copy-trade', { method: 'POST' }),
@@ -169,7 +201,7 @@ function Dashboard() {
         page: 'Kill switches',
         label: 'Activate account kill switch',
         dangerous: true,
-        run: () => api<GenericResponse>('/api/v1/kill-switch/account/acct-1', { method: 'POST' }),
+        run: () => api<GenericResponse>('/api/v1/trading/emergency-close-all', { method: 'POST' }),
       },
       {
         page: 'System health',
@@ -181,12 +213,15 @@ function Dashboard() {
   );
 
   const activeActions = demoActions.filter((demoAction) => demoAction.page === activePage || activePage === 'Overview');
+  const triggerScenario = (scenario: string) => {
+    action.mutate(() => api<GenericResponse>(`/api/v1/trading/mock-scenario/${encodeURIComponent(scenario)}`, { method: 'POST' }));
+  };
 
   const overviewCards = [
-    ['Connected exchange accounts', '0'],
-    ['Active strategies', '0'],
+    ['Connected exchange accounts', tradingDashboard.data?.api_connected ? '1 mock BingX' : 'Disconnected'],
+    ['Active strategies', `Copy ${tradingDashboard.data?.copy_state ?? 'RUNNING'} / Volume ${tradingDashboard.data?.volume_state ?? 'RUNNING'}`],
     ['Follower relationships', '0'],
-    ['Open positions', '0'],
+    ['Open positions', String(tradingDashboard.data?.open_positions?.length ?? 0)],
     ['Total exposure', `${mockMarket.data?.amount_traded_today ?? '0'} USDT`],
     ['Amount traded today', `${mockMarket.data?.amount_traded_today ?? '0'} USDT`],
     ['Realized PnL', `${mockMarket.data?.realized_pnl_today ?? '0'} USDT`],
@@ -269,6 +304,27 @@ function Dashboard() {
         ) : null}
 
 
+        <section className="panel">
+          <h3>Mock scenario selector</h3>
+          <p>Each scenario runs backend mock behavior through the same strategy/risk/order abstractions used by the dashboard.</p>
+          <select
+            value={tradingDashboard.data?.scenario ?? 'Normal market'}
+            onChange={(event) => triggerScenario(event.target.value)}
+          >
+            {(tradingDashboard.data?.scenario_options ?? ['Normal market']).map((scenario) => (
+              <option key={scenario} value={scenario}>
+                {scenario}
+              </option>
+            ))}
+          </select>
+          <div className="actions">
+            <button type="button" onClick={() => action.mutate(() => api<GenericResponse>('/api/v1/trading/copy/pause', { method: 'POST' }))}>Pause copy strategy</button>
+            <button type="button" onClick={() => action.mutate(() => api<GenericResponse>('/api/v1/trading/copy/resume', { method: 'POST' }))}>Resume copy strategy</button>
+            <button type="button" onClick={() => action.mutate(() => api<GenericResponse>('/api/v1/trading/volume/pause', { method: 'POST' }))}>Pause volume strategy</button>
+            <button type="button" onClick={() => action.mutate(() => api<GenericResponse>('/api/v1/trading/volume/resume', { method: 'POST' }))}>Resume volume strategy</button>
+          </div>
+        </section>
+
         <section className="panel marketPanel">
           <h3>Mock real-time market and P&amp;L simulation</h3>
           <p>{mockMarket.data?.truthfulness_note ?? 'Loading mock real-time market data…'}</p>
@@ -305,6 +361,28 @@ function Dashboard() {
             </tbody>
           </table>
           <small>Last mock tick: {mockMarket.data?.timestamp ? new Date(mockMarket.data.timestamp).toLocaleTimeString() : 'pending'}</small>
+        </section>
+
+
+
+        <section className="panel marketPanel">
+          <h3>Trading engine data</h3>
+          <div className="pnlStrip">
+            <span>Balance: <strong>{tradingDashboard.data?.balance.total ?? '0'} {tradingDashboard.data?.balance.asset ?? 'USDT'}</strong></span>
+            <span>Available: <strong>{tradingDashboard.data?.balance.available ?? '0'} USDT</strong></span>
+            <span>Copy: <strong>{tradingDashboard.data?.copy_state ?? 'RUNNING'}</strong></span>
+            <span>Volume: <strong>{tradingDashboard.data?.volume_state ?? 'RUNNING'}</strong></span>
+          </div>
+          <h4>Open positions</h4>
+          <pre>{JSON.stringify(tradingDashboard.data?.open_positions ?? [], null, 2)}</pre>
+          <h4>Recent signals</h4>
+          <pre>{JSON.stringify(tradingDashboard.data?.signals ?? [], null, 2)}</pre>
+          <h4>Recent orders</h4>
+          <pre>{JSON.stringify(tradingDashboard.data?.orders ?? [], null, 2)}</pre>
+          <h4>Notification preview</h4>
+          <pre>{JSON.stringify(tradingDashboard.data?.notifications ?? [], null, 2)}</pre>
+          <h4>Reports</h4>
+          <pre>{JSON.stringify(tradingDashboard.data?.reports ?? {}, null, 2)}</pre>
         </section>
 
         <section className="panel">
@@ -355,7 +433,7 @@ function Dashboard() {
         <section className="panel">
           <h3>API health</h3>
           {health.isLoading ? <p>Loading API health…</p> : null}
-          {health.error ? <p className="error">{String(health.error)}</p> : <pre>{JSON.stringify({ health: health.data, botStatus: botStatus.data, mockMarket: mockMarket.data }, null, 2)}</pre>}
+          {health.error ? <p className="error">{String(health.error)}</p> : <pre>{JSON.stringify({ health: health.data, botStatus: botStatus.data, mockMarket: mockMarket.data, tradingDashboard: tradingDashboard.data }, null, 2)}</pre>}
         </section>
       </section>
     </main>
