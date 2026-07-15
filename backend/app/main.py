@@ -71,6 +71,52 @@ def bot_status() -> dict[str, object]:
     }
 
 
+@app.get("/api/v1/mock/market-live")
+def mock_market_live() -> dict[str, object]:
+    now = datetime.now(UTC)
+    tick = Decimal(now.second + (now.minute * 60))
+    symbols = [
+        ("BTC-USDT", Decimal("65000"), Decimal("12.5")),
+        ("ETH-USDT", Decimal("3500"), Decimal("85.2")),
+        ("SOL-USDT", Decimal("155"), Decimal("1450")),
+    ]
+    markets = []
+    total_notional = Decimal("0")
+    unrealized_pnl = Decimal("0")
+    realized_pnl = Decimal("42.18")
+    for index, (symbol, base_price, mock_volume) in enumerate(symbols, start=1):
+        offset = (tick % Decimal(30)) - Decimal(15)
+        price = base_price + (offset * Decimal(index) / Decimal("10"))
+        change = (price - base_price) / base_price * Decimal("100")
+        quantity = Decimal(index) / Decimal("100")
+        notional_value = price * quantity
+        pnl = (price - base_price) * quantity
+        total_notional += notional_value
+        unrealized_pnl += pnl
+        markets.append(
+            {
+                "symbol": symbol,
+                "price": str(price.quantize(Decimal("0.01"))),
+                "change_percent": str(change.quantize(Decimal("0.0001"))),
+                "mock_volume": str(mock_volume),
+                "simulated_position_quantity": str(quantity),
+                "simulated_notional": str(notional_value.quantize(Decimal("0.01"))),
+                "simulated_unrealized_pnl": str(pnl.quantize(Decimal("0.01"))),
+            }
+        )
+    return {
+        "mode": settings.execution_mode,
+        "timestamp": now.isoformat(),
+        "data_quality": "MOCK_SIMULATED_REALTIME",
+        "truthfulness_note": "This is deterministic mock market data for UI/live-feature simulation; it is not exchange market data.",
+        "amount_traded_today": str(total_notional.quantize(Decimal("0.01"))),
+        "realized_pnl_today": str(realized_pnl.quantize(Decimal("0.01"))),
+        "unrealized_pnl": str(unrealized_pnl.quantize(Decimal("0.01"))),
+        "total_pnl": str((realized_pnl + unrealized_pnl).quantize(Decimal("0.01"))),
+        "markets": markets,
+    }
+
+
 @app.post("/api/v1/system/mode/activate-mock")
 def activate_mock_mode() -> dict[str, str]:
     return {

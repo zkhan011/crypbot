@@ -80,3 +80,17 @@ LIVE mode requires environment enablement, database enablement, platform adminis
 ## Project status
 
 Initial runnable release with deterministic fake exchange, safety controls, documentation, tests, CI, and BingX connector skeleton. Not approved for real-money production use.
+
+## Mock live-feature simulation guide
+
+The local dashboard includes a **Mock real-time market and P&L simulation** panel. It is designed to demonstrate the same kinds of operational signals operators expect in live mode without submitting real exchange orders.
+
+What the mock live panel shows:
+
+- Bot running state and heartbeat, refreshed from `/api/v1/bot/status`.
+- Simulated amount traded today.
+- Simulated realized, unrealized, and total P&L.
+- Simulated BTC/ETH/SOL market ticks from `/api/v1/mock/market-live`.
+- Mock market volume, simulated position quantity, notional, and unrealized P&L per symbol.
+
+Important safety note: mock market data is deterministic simulation data. It is not BingX market data, not investment advice, and not evidence of real exchange execution. LIVE mode must only be enabled after the documented approval, reconciliation, credential, security, and compliance gates are complete.

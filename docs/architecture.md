@@ -18,6 +18,7 @@ Crypbot prioritizes correctness, security, auditability, reconciliation, and cap
 - Reconciliation service
 - TWAP and volume-aware participation strategies with compliance safeguards
 - Audit logging and observability
+- Mock real-time trading telemetry for local live-feature simulation
 
 ## Data model
 

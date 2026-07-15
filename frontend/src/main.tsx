@@ -75,6 +75,25 @@ type BotStatusResponse = {
   truthfulness_note: string;
 };
 type GenericResponse = Record<string, unknown>;
+type MockMarketResponse = {
+  mode: string;
+  timestamp: string;
+  data_quality: string;
+  truthfulness_note: string;
+  amount_traded_today: string;
+  realized_pnl_today: string;
+  unrealized_pnl: string;
+  total_pnl: string;
+  markets: Array<{
+    symbol: string;
+    price: string;
+    change_percent: string;
+    mock_volume: string;
+    simulated_position_quantity: string;
+    simulated_notional: string;
+    simulated_unrealized_pnl: string;
+  }>;
+};
 type VolumePlanResponse = {
   mode: string;
   objective: string;
@@ -96,6 +115,11 @@ function Dashboard() {
     queryKey: ['bot-status'],
     queryFn: () => api<BotStatusResponse>('/api/v1/bot/status'),
     refetchInterval: 5000,
+  });
+  const mockMarket = useQuery({
+    queryKey: ['mock-market-live'],
+    queryFn: () => api<MockMarketResponse>('/api/v1/mock/market-live'),
+    refetchInterval: 3000,
   });
   const action = useMutation({ mutationFn: (run: () => Promise<GenericResponse>) => run() });
   const volumePlan = useMutation({
@@ -163,8 +187,11 @@ function Dashboard() {
     ['Active strategies', '0'],
     ['Follower relationships', '0'],
     ['Open positions', '0'],
-    ['Total exposure', '0 USDT'],
-    ['Daily PnL', '0 USDT'],
+    ['Total exposure', `${mockMarket.data?.amount_traded_today ?? '0'} USDT`],
+    ['Amount traded today', `${mockMarket.data?.amount_traded_today ?? '0'} USDT`],
+    ['Realized PnL', `${mockMarket.data?.realized_pnl_today ?? '0'} USDT`],
+    ['Unrealized PnL', `${mockMarket.data?.unrealized_pnl ?? '0'} USDT`],
+    ['Total PnL', `${mockMarket.data?.total_pnl ?? '0'} USDT`],
     ['Rejected orders', '0'],
     ['Reconciliation incidents', '0'],
     ['Worker health', botStatus.data?.worker_state ?? 'RUNNING'],
@@ -241,6 +268,45 @@ function Dashboard() {
           </div>
         ) : null}
 
+
+        <section className="panel marketPanel">
+          <h3>Mock real-time market and P&amp;L simulation</h3>
+          <p>{mockMarket.data?.truthfulness_note ?? 'Loading mock real-time market data…'}</p>
+          <div className="pnlStrip">
+            <span>Amount traded: <strong>{mockMarket.data?.amount_traded_today ?? '0'} USDT</strong></span>
+            <span>Realized P&amp;L: <strong>{mockMarket.data?.realized_pnl_today ?? '0'} USDT</strong></span>
+            <span>Unrealized P&amp;L: <strong>{mockMarket.data?.unrealized_pnl ?? '0'} USDT</strong></span>
+            <span>Total P&amp;L: <strong>{mockMarket.data?.total_pnl ?? '0'} USDT</strong></span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                <th>Mock price</th>
+                <th>Change %</th>
+                <th>Mock volume</th>
+                <th>Position</th>
+                <th>Notional</th>
+                <th>Unrealized P&amp;L</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(mockMarket.data?.markets ?? []).map((market) => (
+                <tr key={market.symbol}>
+                  <td>{market.symbol}</td>
+                  <td>{market.price}</td>
+                  <td>{market.change_percent}</td>
+                  <td>{market.mock_volume}</td>
+                  <td>{market.simulated_position_quantity}</td>
+                  <td>{market.simulated_notional}</td>
+                  <td>{market.simulated_unrealized_pnl}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <small>Last mock tick: {mockMarket.data?.timestamp ? new Date(mockMarket.data.timestamp).toLocaleTimeString() : 'pending'}</small>
+        </section>
+
         <section className="panel">
           <h3>Actions</h3>
           <p>Each button runs a safe mock/demo workflow. Dangerous operations require explicit confirmation.</p>
@@ -289,7 +355,7 @@ function Dashboard() {
         <section className="panel">
           <h3>API health</h3>
           {health.isLoading ? <p>Loading API health…</p> : null}
-          {health.error ? <p className="error">{String(health.error)}</p> : <pre>{JSON.stringify({ health: health.data, botStatus: botStatus.data }, null, 2)}</pre>}
+          {health.error ? <p className="error">{String(health.error)}</p> : <pre>{JSON.stringify({ health: health.data, botStatus: botStatus.data, mockMarket: mockMarket.data }, null, 2)}</pre>}
         </section>
       </section>
     </main>

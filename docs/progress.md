@@ -70,3 +70,17 @@
 - `cd backend && ruff check .` completed successfully.
 - `cd frontend && npm test` was blocked because frontend dependencies are not installed in this environment (`vitest: not found`).
 - `cd backend && PYTHONPATH=. pytest -q` was blocked because third-party backend dependencies are not installed in this environment (`argon2` missing).
+
+## Update on 2026-07-15 mock live-feature telemetry
+
+- Added a mock real-time market endpoint that returns simulated BTC/ETH/SOL prices, mock volume, simulated amount traded, and simulated realized/unrealized/total P&L using Decimal arithmetic.
+- Added a frontend mock live telemetry panel that refreshes alongside bot heartbeat data and displays amount traded, P&L, market ticks, simulated positions, and notional values.
+- Updated the application guide to explain that the panel simulates live operational features and is not real exchange market data or real order execution.
+
+## Validation on 2026-07-15 mock live-feature telemetry
+
+- `python -m compileall backend/app backend/tests scripts` completed successfully.
+- `cd backend && ruff format .` completed successfully.
+- `cd backend && ruff check .` completed successfully.
+- `cd frontend && npm test` was blocked because frontend dependencies are not installed in this environment (`vitest: not found`).
+- `cd backend && PYTHONPATH=. pytest -q` was blocked because third-party backend dependencies are not installed in this environment (`argon2` missing).
