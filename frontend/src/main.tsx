@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider, useMutation, useQuery } from '@tanstack/react-query';
 import './style.css';
@@ -25,7 +25,31 @@ const pages = [
   'System health',
   'Kill switches',
   'Reports',
-];
+] as const;
+
+type PageName = (typeof pages)[number];
+
+const pageDescriptions: Record<PageName, string> = {
+  Overview: 'Portfolio-wide operational status and safety controls.',
+  Organizations: 'Tenant administration and organization-level controls.',
+  'Users and roles': 'Least-privilege role assignment and operator access review.',
+  'Exchange accounts': 'Exchange account registration, verification, and credential rotation.',
+  Masters: 'Master account signal sources and ingestion status.',
+  Followers: 'Follower account configuration, limits, and pause state.',
+  'Copy relationships': 'Master-to-follower copy mappings and state-machine status.',
+  Strategies: 'Automated execution strategies, simulation controls, pause/resume, and emergency stop.',
+  'Risk settings': 'Pre-trade risk limits and rejection reason visibility.',
+  'Volume-aware execution': 'Legitimate participation-capped execution planning; not fake volume generation.',
+  'Live orders': 'Current order lifecycle and idempotency status.',
+  Positions: 'Open positions and reconciliation state.',
+  Balances: 'Latest fake-exchange balance snapshots for local demonstration.',
+  'Reconciliation incidents': 'Mismatches requiring review before additional trading.',
+  Alerts: 'Operational and security alert queue.',
+  'Audit trail': 'Append-only administrative and trading decision history.',
+  'System health': 'API, worker, WebSocket, database, and Redis readiness.',
+  'Kill switches': 'Emergency controls that fail closed for new trading.',
+  Reports: 'Tenant-scoped operational and compliance reports.',
+};
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -39,6 +63,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 type HealthResponse = { status: string; mode: string };
+type GenericResponse = Record<string, unknown>;
 type VolumePlanResponse = {
   mode: string;
   objective: string;
@@ -46,8 +71,17 @@ type VolumePlanResponse = {
   child_orders: Array<{ slice: number; quantity: string; max_market_volume_quantity: string }>;
 };
 
+type DemoAction = {
+  label: string;
+  page: PageName;
+  run: () => Promise<GenericResponse>;
+  dangerous?: boolean;
+};
+
 function Dashboard() {
+  const [activePage, setActivePage] = useState<PageName>('Overview');
   const health = useQuery({ queryKey: ['health'], queryFn: () => api<HealthResponse>('/health') });
+  const action = useMutation({ mutationFn: (run: () => Promise<GenericResponse>) => run() });
   const volumePlan = useMutation({
     mutationFn: () =>
       api<VolumePlanResponse>('/api/v1/demo/volume-execution', {
@@ -63,6 +97,50 @@ function Dashboard() {
         }),
       }),
   });
+
+  const demoActions = useMemo<DemoAction[]>(
+    () => [
+      {
+        page: 'Overview',
+        label: 'Activate MOCK mode',
+        run: () => api<GenericResponse>('/api/v1/system/mode/activate-mock', { method: 'POST' }),
+      },
+      {
+        page: 'Copy relationships',
+        label: 'Simulate copy trade',
+        run: () => api<GenericResponse>('/api/v1/demo/copy-trade', { method: 'POST' }),
+      },
+      {
+        page: 'Live orders',
+        label: 'Submit fake exchange order',
+        run: () => api<GenericResponse>('/api/v1/demo/submit-order', { method: 'POST' }),
+      },
+      {
+        page: 'Strategies',
+        label: 'Simulate TWAP plan',
+        run: () => api<GenericResponse>('/api/v1/demo/twap', { method: 'POST' }),
+      },
+      {
+        page: 'Reconciliation incidents',
+        label: 'Load reconciliation demo',
+        run: () => api<GenericResponse>('/api/v1/reconciliation/demo'),
+      },
+      {
+        page: 'Kill switches',
+        label: 'Activate account kill switch',
+        dangerous: true,
+        run: () => api<GenericResponse>('/api/v1/kill-switch/account/acct-1', { method: 'POST' }),
+      },
+      {
+        page: 'System health',
+        label: 'Refresh readiness',
+        run: () => api<GenericResponse>('/ready'),
+      },
+    ],
+    [],
+  );
+
+  const activeActions = demoActions.filter((demoAction) => demoAction.page === activePage || activePage === 'Overview');
 
   const overviewCards = [
     ['Connected exchange accounts', '0'],
@@ -81,35 +159,86 @@ function Dashboard() {
     <main>
       <aside>
         <h1>Crypbot</h1>
-        <strong className="badge">MOCK MODE</strong>
-        {pages.map((page) => (
-          <a key={page}>{page}</a>
-        ))}
+        <button
+          type="button"
+          className="modeButton"
+          onClick={() => action.mutate(() => api<GenericResponse>('/api/v1/system/mode/activate-mock', { method: 'POST' }))}
+        >
+          Activate MOCK mode
+        </button>
+        <strong className="badge">{health.data?.mode ?? 'MOCK'} MODE</strong>
+        <nav aria-label="Administration sections">
+          {pages.map((page) => (
+            <button
+              type="button"
+              key={page}
+              className={page === activePage ? 'navItem active' : 'navItem'}
+              aria-pressed={page === activePage}
+              onClick={() => setActivePage(page)}
+            >
+              {page}
+            </button>
+          ))}
+        </nav>
       </aside>
       <section>
-        <h2>Operational Overview</h2>
-        <p>Production-oriented crypto copy-trading control plane. Secrets never leave the backend.</p>
-        <div className="grid">
-          {overviewCards.map(([label, value]) => (
-            <article key={label}>
-              <span>{label}</span>
-              <b>{value}</b>
-            </article>
-          ))}
-        </div>
+        <h2>{activePage}</h2>
+        <p>{pageDescriptions[activePage]}</p>
+        {activePage === 'Overview' ? (
+          <div className="grid">
+            {overviewCards.map(([label, value]) => (
+              <article key={label}>
+                <span>{label}</span>
+                <b>{value}</b>
+              </article>
+            ))}
+          </div>
+        ) : null}
 
         <section className="panel">
-          <h3>Compliant volume-aware execution</h3>
-          <p>
-            Builds capped participation child orders for legitimate execution objectives only. It is not a fake-volume,
-            wash-trading, or self-trading tool.
-          </p>
-          <button type="button" onClick={() => volumePlan.mutate()}>
-            Simulate volume-aware plan
-          </button>
-          {volumePlan.data ? <pre>{JSON.stringify(volumePlan.data, null, 2)}</pre> : null}
-          {volumePlan.error ? <p className="error">{String(volumePlan.error)}</p> : null}
+          <h3>Actions</h3>
+          <p>Each button runs a safe mock/demo workflow. Dangerous operations require explicit confirmation.</p>
+          <div className="actions">
+            {activeActions.length ? (
+              activeActions.map((demoAction) => (
+                <button
+                  type="button"
+                  key={`${demoAction.page}-${demoAction.label}`}
+                  className={demoAction.dangerous ? 'dangerButton' : undefined}
+                  onClick={() => {
+                    if (demoAction.dangerous && !window.confirm('This activates a demo kill switch and blocks new trading for the account. Continue?')) {
+                      return;
+                    }
+                    action.mutate(demoAction.run);
+                  }}
+                >
+                  {demoAction.label}
+                </button>
+              ))
+            ) : (
+              <button type="button" onClick={() => setActivePage('Overview')}>
+                Back to overview actions
+              </button>
+            )}
+          </div>
+          {action.data ? <pre>{JSON.stringify(action.data, null, 2)}</pre> : null}
+          {action.error ? <p className="error">{String(action.error)}</p> : null}
         </section>
+
+        {activePage === 'Volume-aware execution' || activePage === 'Overview' ? (
+          <section className="panel">
+            <h3>Compliant volume-aware execution</h3>
+            <p>
+              Builds capped participation child orders for legitimate execution objectives only. It is not a fake-volume,
+              wash-trading, or self-trading tool.
+            </p>
+            <button type="button" onClick={() => volumePlan.mutate()}>
+              Simulate volume-aware plan
+            </button>
+            {volumePlan.data ? <pre>{JSON.stringify(volumePlan.data, null, 2)}</pre> : null}
+            {volumePlan.error ? <p className="error">{String(volumePlan.error)}</p> : null}
+          </section>
+        ) : null}
 
         <section className="panel">
           <h3>API health</h3>

@@ -43,3 +43,16 @@
 - `cd backend && ruff format .` completed successfully.
 - `cd backend && ruff check .` completed successfully.
 - `cd backend && PYTHONPATH=. pytest -q` remains blocked in this environment because third-party dependencies such as `argon2` are not installed and package registry access was previously denied.
+
+## Update on 2026-07-15 frontend interactivity
+
+- Replaced inert sidebar labels with accessible buttons that switch the active dashboard section.
+- Added a front-end MOCK activation button backed by a safe `/api/v1/system/mode/activate-mock` endpoint.
+- Added clickable demo actions for copy trading, fake-exchange order submission, TWAP, reconciliation, readiness, and account kill-switch confirmation.
+
+## Validation on 2026-07-15 frontend interactivity
+
+- `python -m compileall backend/app backend/tests scripts` completed successfully.
+- `cd backend && ruff format .` completed successfully.
+- `cd backend && ruff check .` completed successfully.
+- `cd frontend && npm test` was blocked because frontend dependencies are not installed in this environment (`vitest: not found`) and prior registry access was denied.

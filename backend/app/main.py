@@ -45,6 +45,15 @@ def metrics() -> Response:
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
+@app.post("/api/v1/system/mode/activate-mock")
+def activate_mock_mode() -> dict[str, str]:
+    return {
+        "mode": "MOCK",
+        "state": "ACTIVE",
+        "safety": "mock execution mode is active; live trading remains disabled",
+    }
+
+
 @app.get("/api/v1/me")
 def me() -> dict[str, object]:
     return {"email": "dev-admin@example.local", "roles": ["platform_admin"], "organization_id": "dev-org"}
