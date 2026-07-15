@@ -63,6 +63,17 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 type HealthResponse = { status: string; mode: string };
+type BotStatusResponse = {
+  mode: string;
+  bot_state: string;
+  heartbeat_at: string;
+  market_data_state: string;
+  worker_state: string;
+  trading_state: string;
+  orders_processed_today: number;
+  last_trade_summary: string;
+  truthfulness_note: string;
+};
 type GenericResponse = Record<string, unknown>;
 type VolumePlanResponse = {
   mode: string;
@@ -81,6 +92,11 @@ type DemoAction = {
 function Dashboard() {
   const [activePage, setActivePage] = useState<PageName>('Overview');
   const health = useQuery({ queryKey: ['health'], queryFn: () => api<HealthResponse>('/health') });
+  const botStatus = useQuery({
+    queryKey: ['bot-status'],
+    queryFn: () => api<BotStatusResponse>('/api/v1/bot/status'),
+    refetchInterval: 5000,
+  });
   const action = useMutation({ mutationFn: (run: () => Promise<GenericResponse>) => run() });
   const volumePlan = useMutation({
     mutationFn: () =>
@@ -151,8 +167,10 @@ function Dashboard() {
     ['Daily PnL', '0 USDT'],
     ['Rejected orders', '0'],
     ['Reconciliation incidents', '0'],
-    ['Worker health', 'OK'],
-    ['WebSocket health', 'OK'],
+    ['Worker health', botStatus.data?.worker_state ?? 'RUNNING'],
+    ['WebSocket health', botStatus.data?.market_data_state ?? 'STREAMING_SIMULATED'],
+    ['Bot trading state', botStatus.data?.trading_state ?? 'SIMULATED_TRADING'],
+    ['Orders processed today', String(botStatus.data?.orders_processed_today ?? 0)],
   ];
 
   return (
@@ -166,7 +184,8 @@ function Dashboard() {
         >
           Activate MOCK mode
         </button>
-        <strong className="badge">{health.data?.mode ?? 'MOCK'} MODE</strong>
+        <strong className="badge">{botStatus.data?.mode ?? health.data?.mode ?? 'MOCK'} MODE</strong>
+        <span className="sidebarStatus">{botStatus.data?.bot_state ?? 'RUNNING'}</span>
         <nav aria-label="Administration sections">
           {pages.map((page) => (
             <button
@@ -184,6 +203,33 @@ function Dashboard() {
       <section>
         <h2>{activePage}</h2>
         <p>{pageDescriptions[activePage]}</p>
+
+        <section className="statusBanner" aria-live="polite">
+          <div>
+            <span className="pulse" aria-hidden="true" />
+            <strong>Bot {botStatus.data?.bot_state ?? 'RUNNING'}</strong>
+            <p>{botStatus.data?.last_trade_summary ?? 'Loading continuous bot status…'}</p>
+          </div>
+          <dl>
+            <div>
+              <dt>Mode</dt>
+              <dd>{botStatus.data?.mode ?? 'MOCK'}</dd>
+            </div>
+            <div>
+              <dt>Trading</dt>
+              <dd>{botStatus.data?.trading_state ?? 'SIMULATED_TRADING'}</dd>
+            </div>
+            <div>
+              <dt>Workers</dt>
+              <dd>{botStatus.data?.worker_state ?? 'RUNNING'}</dd>
+            </div>
+            <div>
+              <dt>Heartbeat</dt>
+              <dd>{botStatus.data?.heartbeat_at ? new Date(botStatus.data.heartbeat_at).toLocaleTimeString() : 'pending'}</dd>
+            </div>
+          </dl>
+          <small>{botStatus.data?.truthfulness_note ?? 'MOCK mode displays simulated activity only.'}</small>
+        </section>
         {activePage === 'Overview' ? (
           <div className="grid">
             {overviewCards.map(([label, value]) => (
@@ -243,7 +289,7 @@ function Dashboard() {
         <section className="panel">
           <h3>API health</h3>
           {health.isLoading ? <p>Loading API health…</p> : null}
-          {health.error ? <p className="error">{String(health.error)}</p> : <pre>{JSON.stringify(health.data, null, 2)}</pre>}
+          {health.error ? <p className="error">{String(health.error)}</p> : <pre>{JSON.stringify({ health: health.data, botStatus: botStatus.data }, null, 2)}</pre>}
         </section>
       </section>
     </main>

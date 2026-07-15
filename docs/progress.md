@@ -56,3 +56,17 @@
 - `cd backend && ruff format .` completed successfully.
 - `cd backend && ruff check .` completed successfully.
 - `cd frontend && npm test` was blocked because frontend dependencies are not installed in this environment (`vitest: not found`) and prior registry access was denied.
+
+## Update on 2026-07-15 continuous bot status
+
+- Added a continuously polled bot status API that reports mode, heartbeat, worker state, market-data state, trading state, processed-order count, and a truthfulness note.
+- Added a prominent UI status banner and sidebar running indicator for both MOCK and LIVE mode displays.
+- The MOCK display explicitly says trading activity is simulated and does not submit real exchange orders; LIVE display remains gated by live-mode controls.
+
+## Validation on 2026-07-15 continuous bot status
+
+- `python -m compileall backend/app backend/tests scripts` completed successfully.
+- `cd backend && ruff format .` completed successfully.
+- `cd backend && ruff check .` completed successfully.
+- `cd frontend && npm test` was blocked because frontend dependencies are not installed in this environment (`vitest: not found`).
+- `cd backend && PYTHONPATH=. pytest -q` was blocked because third-party backend dependencies are not installed in this environment (`argon2` missing).

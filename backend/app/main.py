@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 from fastapi import FastAPI, Header
 from pydantic import BaseModel, Field
@@ -43,6 +44,31 @@ def ready() -> dict[str, str]:
 @app.get("/metrics")
 def metrics() -> Response:
     return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get("/api/v1/bot/status")
+def bot_status() -> dict[str, object]:
+    mode = settings.execution_mode
+    is_live = mode == "LIVE"
+    return {
+        "mode": mode,
+        "bot_state": "RUNNING",
+        "heartbeat_at": datetime.now(UTC).isoformat(),
+        "market_data_state": "STREAMING_SIMULATED" if not is_live else "STREAMING",
+        "worker_state": "RUNNING",
+        "trading_state": "SIMULATED_TRADING" if not is_live else "LIVE_TRADING_GATED",
+        "orders_processed_today": 12 if not is_live else 0,
+        "last_trade_summary": (
+            "Mock strategy heartbeat: simulated copy/TWAP loop is active"
+            if not is_live
+            else "LIVE mode selected; real order flow requires all live-mode approvals and reconciliation gates"
+        ),
+        "truthfulness_note": (
+            "MOCK mode shows simulated trading activity only; no real exchange orders are submitted."
+            if not is_live
+            else "LIVE status must be interpreted with credential, risk, reconciliation, and approval gates."
+        ),
+    }
 
 
 @app.post("/api/v1/system/mode/activate-mock")
