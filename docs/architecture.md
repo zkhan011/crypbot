@@ -16,7 +16,7 @@ Crypbot prioritizes correctness, security, auditability, reconciliation, and cap
 - Independent risk engine
 - OMS/order idempotency
 - Reconciliation service
-- TWAP simulation strategy with compliance safeguards
+- TWAP and volume-aware participation strategies with compliance safeguards
 - Audit logging and observability
 
 ## Data model

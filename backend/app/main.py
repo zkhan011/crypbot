@@ -1,5 +1,6 @@
 from decimal import Decimal
 from fastapi import FastAPI, Header
+from pydantic import BaseModel, Field
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.responses import Response
 from app.core.config import settings
@@ -11,11 +12,22 @@ from app.services.orders import OrderService, deterministic_client_order_id
 from app.services.reconciliation import ReconciliationService
 from app.services.risk import RiskEngine, RiskOrder, RiskProfile
 from app.services.twap import TwapPlan, TwapStrategy
+from app.services.volume_execution import VolumeExecutionPlan, VolumeExecutionStrategy
 
 settings.validate_startup_security()
 app = FastAPI(title="Crypbot API", version="0.1.0")
 fake_exchange = FakeExchangeClient()
 risk_engine = RiskEngine()
+
+
+class VolumeExecutionRequest(BaseModel):
+    symbol: str = Field(min_length=1)
+    side: Side
+    target_quantity: Decimal = Field(gt=Decimal("0"))
+    slices: int = Field(gt=0, le=100)
+    observed_market_volume: Decimal = Field(gt=Decimal("0"))
+    max_participation_rate: Decimal = Field(gt=Decimal("0"), le=Decimal("0.2"))
+    objective: str = Field(min_length=12)
 
 
 @app.get("/health")
@@ -96,6 +108,34 @@ async def unknown_order() -> dict[str, object]:
     )
     res = await OrderService(fake_exchange).submit_idempotent(req)
     return res.model_dump(mode="json")
+
+
+@app.post("/api/v1/demo/volume-execution")
+def demo_volume_execution(request: VolumeExecutionRequest) -> dict[str, object]:
+    plan = VolumeExecutionPlan(
+        symbol=request.symbol,
+        side=request.side,
+        target_quantity=request.target_quantity,
+        slices=request.slices,
+        observed_market_volume=request.observed_market_volume,
+        max_participation_rate=request.max_participation_rate,
+        objective=request.objective,
+    )
+    child_orders = VolumeExecutionStrategy().build_child_orders(plan, Decimal("0.001"))
+    return {
+        "mode": settings.execution_mode,
+        "objective": request.objective,
+        "max_participation_rate": str(request.max_participation_rate),
+        "child_orders": [
+            {
+                "slice": child.slice,
+                "quantity": str(child.quantity),
+                "max_market_volume_quantity": str(child.max_market_volume_quantity),
+            }
+            for child in child_orders
+        ],
+        "compliance_note": "Participation is capped for legitimate execution quality; fake volume and wash trading are not supported.",
+    }
 
 
 @app.post("/api/v1/kill-switch/account/{account_id}")

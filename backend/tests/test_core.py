@@ -11,6 +11,7 @@ from app.services.orders import OrderService, deterministic_client_order_id
 from app.services.reconciliation import ReconciliationService
 from app.services.risk import RiskEngine, RiskOrder, RiskProfile
 from app.services.twap import TwapPlan, TwapStrategy
+from app.services.volume_execution import VolumeExecutionPlan, VolumeExecutionStrategy
 
 
 def test_decimal_rounding():
@@ -81,3 +82,32 @@ async def test_unknown_order_reconciles_after_timeout():
 def test_reconciliation_mismatches():
     cats = [i.category for i in ReconciliationService().compare_orders({"a"}, {"b"})]
     assert cats == ["Local order missing on exchange", "Exchange order missing locally"]
+
+
+def test_volume_execution_caps_participation():
+    plan = VolumeExecutionPlan(
+        symbol="BTC-USDT",
+        side=Side.BUY,
+        target_quantity=Decimal("1"),
+        slices=4,
+        observed_market_volume=Decimal("10"),
+        max_participation_rate=Decimal("0.01"),
+        objective="Legitimate inventory accumulation with capped participation",
+    )
+    child_orders = VolumeExecutionStrategy().build_child_orders(plan, Decimal("0.001"))
+    assert [order.quantity for order in child_orders] == [Decimal("0.025")] * 4
+    assert all(order.max_market_volume_quantity == Decimal("0.025") for order in child_orders)
+
+
+def test_volume_execution_rejects_missing_objective():
+    plan = VolumeExecutionPlan(
+        symbol="BTC-USDT",
+        side=Side.BUY,
+        target_quantity=Decimal("1"),
+        slices=4,
+        observed_market_volume=Decimal("10"),
+        max_participation_rate=Decimal("0.01"),
+        objective="",
+    )
+    with pytest.raises(ValueError, match="legitimate execution objective"):
+        VolumeExecutionStrategy().build_child_orders(plan, Decimal("0.001"))

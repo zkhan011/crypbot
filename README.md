@@ -56,6 +56,9 @@ cd frontend && npm test
 curl -X POST http://localhost:8000/api/v1/demo/copy-trade
 curl -X POST http://localhost:8000/api/v1/demo/submit-order
 curl -X POST http://localhost:8000/api/v1/demo/twap
+curl -X POST http://localhost:8000/api/v1/demo/volume-execution \
+  -H "content-type: application/json" \
+  -d '{"symbol":"BTC-USDT","side":"BUY","target_quantity":"0.02","slices":4,"observed_market_volume":"10","max_participation_rate":"0.001","objective":"Accumulate inventory using a capped participation schedule without creating artificial volume."}'
 curl http://localhost:8000/api/v1/reconciliation/demo
 ```
 

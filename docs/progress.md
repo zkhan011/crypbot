@@ -30,3 +30,16 @@
 - `ruff check . --fix` completed successfully after removing unused imports.
 - `python -m compileall backend/app backend/tests scripts` completed successfully.
 - `python -m pip install -e backend`, backend pytest, mypy, Docker stack validation, and frontend npm validation were blocked by environment package registry access returning 403 errors for PyPI/npm dependencies. No real secrets were added; `.env.example` contains placeholders only.
+
+## Update on 2026-07-15
+
+- Fixed the dashboard boot issue by moving TanStack Query hooks under a `QueryClientProvider` and adding Vite proxy configuration for API calls from the frontend container.
+- Added a compliant volume-aware execution demo that caps child order size by observed market volume participation rate and requires a legitimate execution objective.
+- Explicitly documented that fake volume, wash trading, and self-trading are not supported.
+
+## Validation on 2026-07-15
+
+- `python -m compileall backend/app backend/tests scripts` completed successfully.
+- `cd backend && ruff format .` completed successfully.
+- `cd backend && ruff check .` completed successfully.
+- `cd backend && PYTHONPATH=. pytest -q` remains blocked in this environment because third-party dependencies such as `argon2` are not installed and package registry access was previously denied.
