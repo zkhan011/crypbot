@@ -16,6 +16,7 @@ const pages = [
   'Strategies',
   'Risk settings',
   'Volume-aware execution',
+  'AI Strategy Assistant',
   'Live orders',
   'Positions',
   'Balances',
@@ -40,6 +41,7 @@ const pageDescriptions: Record<PageName, string> = {
   Strategies: 'Automated execution strategies, simulation controls, pause/resume, and emergency stop.',
   'Risk settings': 'Pre-trade risk limits and rejection reason visibility.',
   'Volume-aware execution': 'Legitimate participation-capped execution planning; not fake volume generation.',
+  'AI Strategy Assistant': 'Mock AI creates non-executing strategy drafts that require administrator approval and mock validation.',
   'Live orders': 'Current order lifecycle and idempotency status.',
   Positions: 'Open positions and reconciliation state.',
   Balances: 'Latest fake-exchange balance snapshots for local demonstration.',
@@ -60,6 +62,10 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(`API request failed: ${response.status}`);
   }
   return response.json() as Promise<T>;
+}
+
+async function authenticatedApi<T>(path: string, token: string, init?: RequestInit): Promise<T> {
+  return api<T>(path, { ...init, headers: { authorization: `Bearer ${token}`, ...(init?.headers ?? {}) } });
 }
 
 type HealthResponse = { status: string; mode: string };
@@ -117,6 +123,9 @@ type VolumePlanResponse = {
   max_participation_rate: string;
   child_orders: Array<{ slice: number; quantity: string; max_market_volume_quantity: string }>;
 };
+type LoggedInUser = { id: string; email: string; display_name: string; role: string; force_password_change: boolean };
+type LoginResponse = { access_token: string; user: LoggedInUser };
+type StrategyDraft = { id: string; strategyName: string; strategyType: string; activationStatus: string; riskExplanation: string };
 
 type DemoAction = {
   label: string;
@@ -127,6 +136,10 @@ type DemoAction = {
 
 function Dashboard() {
   const [activePage, setActivePage] = useState<PageName>('Overview');
+  const [email, setEmail] = useState('superadmin@example.local');
+  const [password, setPassword] = useState('ChangeMe123!');
+  const [aiPrompt, setAiPrompt] = useState('Create a conservative BTC and ETH volume breakout strategy');
+  const [session, setSession] = useState<LoginResponse | null>(null);
   const health = useQuery({ queryKey: ['health'], queryFn: () => api<HealthResponse>('/health') });
   const botStatus = useQuery({
     queryKey: ['bot-status'],
@@ -158,6 +171,23 @@ function Dashboard() {
           objective: 'Accumulate inventory using a capped participation schedule without creating artificial volume.',
         }),
       }),
+  });
+  const login = useMutation({
+    mutationFn: () => api<LoginResponse>('/api/v1/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+    onSuccess: setSession,
+  });
+  const drafts = useQuery({
+    queryKey: ['ai-drafts', session?.access_token],
+    queryFn: () => authenticatedApi<{ drafts: StrategyDraft[] }>('/api/v1/ai/strategy-drafts', session!.access_token),
+    enabled: Boolean(session),
+  });
+  const createDraft = useMutation({
+    mutationFn: () => authenticatedApi<StrategyDraft>('/api/v1/ai/strategy-drafts', session!.access_token, { method: 'POST', body: JSON.stringify({ prompt: aiPrompt }) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ai-drafts'] }),
+  });
+  const approveDraft = useMutation({
+    mutationFn: (draftId: string) => authenticatedApi<StrategyDraft>(`/api/v1/ai/strategy-drafts/${draftId}/approve`, session!.access_token, { method: 'POST' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ai-drafts'] }),
   });
 
   const demoActions = useMemo<DemoAction[]>(
@@ -265,6 +295,21 @@ function Dashboard() {
       <section>
         <h2>{activePage}</h2>
         <p>{pageDescriptions[activePage]}</p>
+
+        <section className="panel loginPanel">
+          <h3>Authenticated admin demo</h3>
+          {session ? (
+            <p>Signed in as <strong>{session.user.display_name}</strong> ({session.user.role}). AI drafts are never executable directly.</p>
+          ) : (
+            <div className="loginFields">
+              <input aria-label="Email" value={email} onChange={(event) => setEmail(event.target.value)} />
+              <input aria-label="Password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+              <button type="button" onClick={() => login.mutate()}>Sign in to control plane</button>
+              <small>Demo credentials are documented for local MOCK mode only.</small>
+            </div>
+          )}
+          {login.error ? <p className="error">{String(login.error)}</p> : null}
+        </section>
 
         <section className="statusBanner" aria-live="polite">
           <div>
@@ -427,6 +472,26 @@ function Dashboard() {
             </button>
             {volumePlan.data ? <pre>{JSON.stringify(volumePlan.data, null, 2)}</pre> : null}
             {volumePlan.error ? <p className="error">{String(volumePlan.error)}</p> : null}
+          </section>
+        ) : null}
+
+        {activePage === 'AI Strategy Assistant' ? (
+          <section className="panel">
+            <h3>AI Strategy Assistant — draft-only</h3>
+            <p>The mock AI assistant produces structured recommendations only. It cannot submit orders, and approval rejects drafts that exceed hard limits.</p>
+            {session ? (
+              <>
+                <textarea aria-label="AI strategy prompt" value={aiPrompt} onChange={(event) => setAiPrompt(event.target.value)} />
+                <div className="actions"><button type="button" onClick={() => createDraft.mutate()}>Create mock AI draft</button></div>
+                {createDraft.error ? <p className="error">{String(createDraft.error)}</p> : null}
+                {(drafts.data?.drafts ?? []).map((draft) => (
+                  <article className="draftCard" key={draft.id}>
+                    <div><b>{draft.strategyName}</b><br /><small>{draft.strategyType} · {draft.activationStatus}</small><p>{draft.riskExplanation}</p></div>
+                    {session.user.role === 'SUPER_ADMIN' || session.user.role === 'ADMIN' ? <button type="button" disabled={draft.activationStatus !== 'DRAFT'} onClick={() => approveDraft.mutate(draft.id)}>Approve safe draft</button> : null}
+                  </article>
+                ))}
+              </>
+            ) : <p>Sign in to create or review a draft.</p>}
           </section>
         ) : null}
 

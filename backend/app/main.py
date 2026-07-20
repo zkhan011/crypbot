@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 from decimal import Decimal
-from fastapi import FastAPI, Header
+from fastapi import Depends, FastAPI, Header, HTTPException, status
 from pydantic import BaseModel, Field
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.responses import Response
@@ -14,6 +14,7 @@ from app.services.reconciliation import ReconciliationService
 from app.services.risk import RiskEngine, RiskOrder, RiskProfile
 from app.services.twap import TwapPlan, TwapStrategy
 from app.services.volume_execution import VolumeExecutionPlan, VolumeExecutionStrategy
+from app.services.control_plane import AuthenticationError, AuthorizationError, ControlPlane, Role, User
 from app.services.trading_platform import MockScenario, StrategyName, TradingApplication
 
 settings.validate_startup_security()
@@ -21,6 +22,7 @@ app = FastAPI(title="Crypbot API", version="0.1.0")
 fake_exchange = FakeExchangeClient()
 risk_engine = RiskEngine()
 trading_app = TradingApplication()
+control_plane = ControlPlane()
 
 
 class VolumeExecutionRequest(BaseModel):
@@ -31,6 +33,38 @@ class VolumeExecutionRequest(BaseModel):
     observed_market_volume: Decimal = Field(gt=Decimal("0"))
     max_participation_rate: Decimal = Field(gt=Decimal("0"), le=Decimal("0.2"))
     objective: str = Field(min_length=12)
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=12, max_length=256)
+
+
+class CreateUserRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=254)
+    display_name: str = Field(min_length=1, max_length=120)
+    role: Role
+    password: str = Field(min_length=12, max_length=256)
+
+
+class AIRequest(BaseModel):
+    prompt: str = Field(min_length=12, max_length=4000)
+
+
+def current_user(authorization: str | None = Header(default=None)) -> User:
+    token = authorization.removeprefix("Bearer ") if authorization else None
+    try:
+        return control_plane.session_user(token)
+    except AuthenticationError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="authentication required") from exc
+
+
+def control_error(exc: AuthorizationError | KeyError | ValueError) -> HTTPException:
+    if isinstance(exc, AuthorizationError):
+        return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="insufficient permission")
+    if isinstance(exc, KeyError):
+        return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="resource not found")
+    return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
 
 
 @app.get("/health")
@@ -55,17 +89,23 @@ def trading_dashboard() -> dict[str, object]:
 
 @app.post("/api/v1/trading/start")
 def trading_start() -> dict[str, object]:
-    return trading_app.start()
+    snapshot = trading_app.start()
+    control_plane.audit(None, "BOT_STARTED", "bot", "mock-default", "SUCCESS", "Mock bot started through demo control")
+    return snapshot
 
 
 @app.post("/api/v1/trading/stop")
 def trading_stop() -> dict[str, object]:
-    return trading_app.stop()
+    snapshot = trading_app.stop()
+    control_plane.audit(None, "BOT_STOPPED", "bot", "mock-default", "SUCCESS", "Mock bot stopped through demo control")
+    return snapshot
 
 
 @app.post("/api/v1/trading/emergency-close-all")
 def trading_emergency_close_all() -> dict[str, object]:
-    return trading_app.emergency_stop()
+    snapshot = trading_app.emergency_stop()
+    control_plane.audit(None, "EMERGENCY_STOP", "bot", "mock-default", "SUCCESS", "Emergency close-all executed in mock mode")
+    return snapshot
 
 
 @app.post("/api/v1/trading/copy/pause")
@@ -90,7 +130,9 @@ def trading_resume_volume() -> dict[str, object]:
 
 @app.post("/api/v1/trading/mock-scenario/{scenario}")
 def trading_mock_scenario(scenario: MockScenario) -> dict[str, object]:
-    return trading_app.apply_scenario(scenario)
+    snapshot = trading_app.apply_scenario(scenario)
+    control_plane.audit(None, "MOCK_SCENARIO_TRIGGERED", "mock_scenario", scenario.value, "SUCCESS", "Scenario applied to mock engine")
+    return snapshot
 
 
 @app.get("/api/v1/trading/reports")
@@ -178,9 +220,72 @@ def activate_mock_mode() -> dict[str, str]:
     }
 
 
+@app.post("/api/v1/auth/login")
+def login(request: LoginRequest) -> dict[str, object]:
+    try:
+        token, user = control_plane.authenticate(request.email, request.password)
+        return {"access_token": token, "token_type": "bearer", "user": user.public()}
+    except AuthenticationError as exc:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials") from exc
+
+
+@app.post("/api/v1/auth/logout")
+def logout(user: User = Depends(current_user)) -> dict[str, str]:
+    control_plane.audit(user.id, "LOGOUT", "session", user.id, "SUCCESS", "Session logout requested")
+    return {"status": "logged_out"}
+
+
 @app.get("/api/v1/me")
-def me() -> dict[str, object]:
-    return {"email": "dev-admin@example.local", "roles": ["platform_admin"], "organization_id": "dev-org"}
+def me(user: User = Depends(current_user)) -> dict[str, object]:
+    return user.public()
+
+
+@app.get("/api/v1/users")
+def users(user: User = Depends(current_user)) -> dict[str, object]:
+    try:
+        return {"users": control_plane.list_users(user)}
+    except AuthorizationError as exc:
+        raise control_error(exc) from exc
+
+
+@app.post("/api/v1/users")
+def create_user(request: CreateUserRequest, user: User = Depends(current_user)) -> dict[str, object]:
+    try:
+        return control_plane.create_user(user, request.email, request.display_name, request.role, request.password)
+    except (AuthorizationError, ValueError) as exc:
+        raise control_error(exc) from exc
+
+
+@app.post("/api/v1/ai/strategy-drafts")
+def create_ai_draft(request: AIRequest, user: User = Depends(current_user)) -> dict[str, object]:
+    try:
+        return control_plane.request_ai_draft(user, request.prompt)
+    except AuthorizationError as exc:
+        raise control_error(exc) from exc
+
+
+@app.get("/api/v1/ai/strategy-drafts")
+def list_ai_drafts(user: User = Depends(current_user)) -> dict[str, object]:
+    try:
+        return {"drafts": control_plane.list_drafts(user)}
+    except AuthorizationError as exc:
+        raise control_error(exc) from exc
+
+
+@app.post("/api/v1/ai/strategy-drafts/{draft_id}/approve")
+def approve_ai_draft(draft_id: str, user: User = Depends(current_user)) -> dict[str, object]:
+    try:
+        return control_plane.approve_draft(user, draft_id)
+    except (AuthorizationError, KeyError, ValueError) as exc:
+        raise control_error(exc) from exc
+
+
+@app.get("/api/v1/audit-logs")
+def audit_logs(user: User = Depends(current_user)) -> dict[str, object]:
+    try:
+        return {"audit_logs": control_plane.audit_log(user)}
+    except AuthorizationError as exc:
+        raise control_error(exc) from exc
 
 
 @app.post("/api/v1/risk/evaluate")

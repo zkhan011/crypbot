@@ -101,3 +101,19 @@
 - `cd backend && PYTHONPATH=. pytest -q` completed successfully with 16 passing tests.
 - `cd frontend && npm test` completed successfully with 3 passing tests.
 - `cd frontend && npm run build` completed successfully.
+
+## Update on 2026-07-20 control-plane safety increment
+
+- Added an authenticated, role-enforced MOCK control plane with seeded Super Admin, Admin, Trader, and Viewer accounts; Argon2 password hashes; opaque expiring demo sessions; failure tracking; and temporary lockout.
+- Added protected backend APIs for login/logout/current user, user creation, AI draft creation/listing/approval, and audit-log review.
+- Added a deterministic mock AI adapter that produces draft-only COPY/VOLUME/HYBRID strategy recommendations. It has no execution capability; unsafe high-leverage/no-stop drafts are rejected during approval.
+- Added dashboard sign-in and AI draft/approval controls backed by those APIs, plus auditable mock bot/scenario action records.
+- Added administration, trader, AI, security, API, deployment, troubleshooting documents and replaced the feature checklist with an honest status matrix.
+
+## Validation on 2026-07-20 control-plane safety increment
+
+- `cd backend && ruff format . && ruff check .` completed successfully.
+- `python -m compileall backend/app backend/tests scripts` completed successfully.
+- `cd backend && PYTHONPATH=. pytest -q tests/test_trading_platform.py` completed successfully with 5 passing tests.
+- Full backend tests could not collect because the active Python environment lacks `argon2-cffi`; package installation is blocked by PyPI 403 responses.
+- Frontend unit/build commands could not run because the active environment lacks `vitest`/frontend dependencies; npm registry installation remains unavailable.

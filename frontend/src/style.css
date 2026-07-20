@@ -223,6 +223,37 @@ select {
   width: min(100%, 420px);
 }
 
+input,
+textarea {
+  background: #020617;
+  border: 1px solid #475569;
+  border-radius: 10px;
+  box-sizing: border-box;
+  color: #e5e7eb;
+  padding: 10px;
+}
+
+textarea {
+  min-height: 100px;
+  width: 100%;
+}
+
+.loginFields {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.loginFields small {
+  color: #94a3b8;
+}
+
+.draftCard {
+  align-items: start;
+  gap: 16px;
+  margin-top: 12px;
+}
+
 h4 {
   color: #bfdbfe;
   margin-bottom: 8px;

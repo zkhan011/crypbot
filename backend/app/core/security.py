@@ -2,6 +2,7 @@ import base64, json, re
 from dataclasses import dataclass
 from typing import Any
 from argon2 import PasswordHasher
+from argon2.exceptions import VerificationError
 from cryptography.fernet import Fernet, InvalidToken
 
 SECRET_PATTERNS = [re.compile(p, re.I) for p in ["api[_-]?secret", "signature", "authorization", "token", "password"]]
@@ -23,7 +24,10 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed: str) -> bool:
-    return _ph.verify(hashed, password)
+    try:
+        return _ph.verify(hashed, password)
+    except VerificationError:
+        return False
 
 
 @dataclass(frozen=True)
