@@ -216,3 +216,20 @@ background_jobs = Table(
     Column("created_at", DateTime(timezone=True), server_default=func.now()),
     Column("updated_at", DateTime(timezone=True), server_default=func.now()),
 )
+exchange_credentials = Table(
+    "exchange_credentials",
+    metadata,
+    Column("id", String, primary_key=True),
+    Column("tenant_id", ForeignKey("tenants.id"), nullable=False, index=True),
+    Column("exchange", String, nullable=False),
+    Column("api_key_masked", String, nullable=False),
+    Column("key_id", String, nullable=False),
+    Column("ciphertext", String, nullable=False),
+    Column("is_active", Boolean, nullable=False, server_default="true"),
+    Column("verified_at", DateTime(timezone=True)),
+    Column("verification_status", String, nullable=False, server_default="PENDING"),
+    Column("withdrawal_permission_verified", Boolean),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+    Column("updated_at", DateTime(timezone=True), server_default=func.now()),
+    UniqueConstraint("tenant_id", "exchange", "api_key_masked"),
+)

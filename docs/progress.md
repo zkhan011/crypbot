@@ -131,3 +131,9 @@
 - `python -m compileall backend/app backend/tests scripts` completed successfully.
 - Migration source compiled successfully, but Alembic/PostgreSQL migration execution is blocked because the active environment lacks the declared Python dependencies and Docker/PostgreSQL.
 - New durable-security and production-gate tests are included but the full pytest collection remains blocked by missing `argon2-cffi` in the active interpreter and PyPI 403 package installation responses.
+
+## Update on 2026-07-20 durable runtime repository increment
+
+- Added tenant-scoped SQLAlchemy Core repositories for tenants, bots, versioned settings, persisted audit-chain entries, and encrypted exchange credential lifecycle records.
+- Added `0003_exchange_credentials` migration and a fail-closed live-start gate evaluator requiring the environment gate, verified no-withdrawal credential, approved strategy, configured risk, and final confirmation.
+- Added repository integration tests that use SQLite only as an isolated test database; production remains PostgreSQL-only.
