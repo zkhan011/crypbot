@@ -117,3 +117,17 @@
 - `cd backend && PYTHONPATH=. pytest -q tests/test_trading_platform.py` completed successfully with 5 passing tests.
 - Full backend tests could not collect because the active Python environment lacks `argon2-cffi`; package installation is blocked by PyPI 403 responses.
 - Frontend unit/build commands could not run because the active environment lacks `vitest`/frontend dependencies; npm registry installation remains unavailable.
+
+## Update on 2026-07-20 durable production foundations
+
+- Added Alembic migration `0002_durable_control_plane` and SQLAlchemy metadata for tenant-scoped sessions, refresh-token families, bot/user assignments, versioned settings, risk settings, strategies, AI drafts, hash-chained audits, notifications, and worker jobs.
+- Added an encrypted credential facade that exposes masked values only, plus deterministic audit hash-chain creation/verification primitives.
+- Added production startup checks that reject demo seeding and missing bootstrap-admin/encryption configuration in staging/production; LIVE additionally requires the explicit environment gate and encryption key.
+- Added production readiness, credentials, backup/restore, tenant administration, and penetration-testing documentation. These document remaining work instead of claiming customer-production readiness.
+
+## Validation on 2026-07-20 durable production foundations
+
+- `cd backend && ruff format . && ruff check .` completed successfully.
+- `python -m compileall backend/app backend/tests scripts` completed successfully.
+- Migration source compiled successfully, but Alembic/PostgreSQL migration execution is blocked because the active environment lacks the declared Python dependencies and Docker/PostgreSQL.
+- New durable-security and production-gate tests are included but the full pytest collection remains blocked by missing `argon2-cffi` in the active interpreter and PyPI 403 package installation responses.

@@ -288,6 +288,14 @@ def audit_logs(user: User = Depends(current_user)) -> dict[str, object]:
         raise control_error(exc) from exc
 
 
+@app.get("/api/v1/audit-logs/verify")
+def verify_audit_logs(user: User = Depends(current_user)) -> dict[str, object]:
+    try:
+        return control_plane.verify_audit_log(user)
+    except AuthorizationError as exc:
+        raise control_error(exc) from exc
+
+
 @app.post("/api/v1/risk/evaluate")
 def evaluate(order: RiskOrder) -> dict[str, object]:
     return risk_engine.evaluate(order, RiskProfile()).__dict__

@@ -14,7 +14,8 @@ This checklist is intentionally conservative. **YES** means the current source c
 | Backend RBAC for user management and AI approvals | YES | Partial | YES | GATED | YES | YES | YES | Roles are enforced on new protected control-plane APIs. |
 | AI strategy assistant drafts and approval | YES | YES | YES | NO | YES | YES | YES | Mock provider only; drafts never execute and unsafe draft approvals reject. |
 | Telegram notification provider boundary | YES | NO | Preview | GATED | N/A | Partial | YES | SMTP/email provider is not implemented yet. |
-| Database persistence and migrations | Partial | N/A | NO | Partial | Partial | Partial | YES | Schema scaffold exists; runtime uses memory, so customer deployment is incomplete. |
+| Durable tenant/session/bot/strategy/audit schema | YES | N/A | NO | NO | Partial | Partial | YES | Migration `0002` adds schema foundation; runtime repository wiring and migration execution remain required. |
+| Credential encryption and audit hash-chain primitives | YES | NO | YES | GATED | N/A | YES | YES | Public credential views mask secrets; durable persistence/verification workflow remains required. |
 | Full settings CRUD and frontend configuration pages | NO | NO | NO | NO | NO | NO | Partial | Requires durable repositories and authorized APIs. |
 | Production-grade multi-bot tenancy, reporting exports, and audit immutability | NO | NO | NO | NO | NO | NO | Partial | Required before customer/live deployment. |
 

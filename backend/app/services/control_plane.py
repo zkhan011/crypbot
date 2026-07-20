@@ -17,6 +17,7 @@ from typing import Literal
 from uuid import uuid4
 
 from app.core.security import hash_password, verify_password
+from app.services.durable_security import AuditHashChain
 
 
 class Role(StrEnum):
@@ -186,6 +187,7 @@ class ControlPlane:
         self.users: dict[str, User] = {}
         self.sessions: dict[str, Session] = {}
         self.audit_records: list[AuditRecord] = []
+        self.audit_chain = AuditHashChain()
         self.drafts: dict[str, StrategyDraft] = {}
         self.ai_provider = MockAIProviderAdapter()
         self._seed_users()
@@ -201,9 +203,9 @@ class ControlPlane:
             self.users[user.id] = user
 
     def audit(self, actor_id: str | None, action: str, resource_type: str, resource_id: str, outcome: str, detail: str) -> None:
-        self.audit_records.append(
-            AuditRecord(str(uuid4()), datetime.now(UTC), actor_id, action, resource_type, resource_id, outcome, detail)
-        )
+        record = AuditRecord(str(uuid4()), datetime.now(UTC), actor_id, action, resource_type, resource_id, outcome, detail)
+        self.audit_records.append(record)
+        self.audit_chain.append(record.public())
 
     def authenticate(self, email: str, password: str) -> tuple[str, User]:
         user = next((candidate for candidate in self.users.values() if candidate.email.lower() == email.lower()), None)
@@ -285,3 +287,7 @@ class ControlPlane:
     def audit_log(self, actor: User) -> list[dict[str, str | None]]:
         self.require(actor, "audit:read")
         return [record.public() for record in reversed(self.audit_records[-100:])]
+
+    def verify_audit_log(self, actor: User) -> dict[str, object]:
+        self.require(actor, "audit:read")
+        return {"valid": self.audit_chain.verify(), "entries": len(self.audit_records)}

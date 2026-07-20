@@ -48,3 +48,9 @@ def test_failed_login_is_recorded_and_account_locks_after_five_attempts():
     user = next(user for user in control_plane.users.values() if user.email == "viewer@example.local")
     assert user.failed_logins == 5
     assert user.locked_until is not None
+
+
+def test_audit_chain_verifies_control_plane_events():
+    control_plane = ControlPlane()
+    super_admin = logged_in(control_plane, "superadmin@example.local")
+    assert control_plane.verify_audit_log(super_admin) == {"valid": True, "entries": 1}
