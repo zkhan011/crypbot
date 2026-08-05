@@ -11,7 +11,8 @@ class Settings(BaseSettings):
     redis_url: str = "redis://redis:6379/0"
     jwt_secret: str = Field(default="change-me-only-for-local-development")
     credential_master_key: str = Field(default="")
-    live_trading_env_enabled: bool = False
+    enable_live_trading: bool = False
+    live_trading_env_enabled: bool = False  # Deprecated compatibility flag; canonical gate is CRYPBOT_ENABLE_LIVE_TRADING.
     seed_demo_users: bool = True
     production_bootstrap_admin_email: str = ""
     bingx_base_url: str = "https://open-api.bingx.com"
@@ -25,8 +26,8 @@ class Settings(BaseSettings):
                 raise RuntimeError("production startup forbids demo user seeding")
             if not self.production_bootstrap_admin_email:
                 raise RuntimeError("production startup requires a bootstrap administrator email")
-        if self.execution_mode == "LIVE" and not self.live_trading_env_enabled:
-            raise RuntimeError("LIVE mode requires CRYPBOT_LIVE_TRADING_ENV_ENABLED=true")
+        if self.execution_mode == "LIVE" and not self.enable_live_trading:
+            raise RuntimeError("LIVE mode requires CRYPBOT_ENABLE_LIVE_TRADING=true")
         if self.execution_mode == "LIVE" and not self.credential_master_key:
             raise RuntimeError("LIVE mode requires an encryption master key")
 

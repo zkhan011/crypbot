@@ -22,7 +22,7 @@ def test_production_rejects_demo_seed_and_missing_bootstrap_admin():
 
 
 def test_live_requires_explicit_gate_and_encryption_key():
-    with pytest.raises(RuntimeError, match="LIVE mode requires CRYPBOT_LIVE_TRADING_ENV_ENABLED=true"):
-        Settings(execution_mode="LIVE", live_trading_env_enabled=False).validate_startup_security()
+    with pytest.raises(RuntimeError, match="LIVE mode requires CRYPBOT_ENABLE_LIVE_TRADING=true"):
+        Settings(execution_mode="LIVE", enable_live_trading=False).validate_startup_security()
     with pytest.raises(RuntimeError, match="encryption master key"):
-        Settings(execution_mode="LIVE", live_trading_env_enabled=True).validate_startup_security()
+        Settings(execution_mode="LIVE", enable_live_trading=True).validate_startup_security()

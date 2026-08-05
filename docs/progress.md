@@ -137,3 +137,10 @@
 - Added tenant-scoped SQLAlchemy Core repositories for tenants, bots, versioned settings, persisted audit-chain entries, and encrypted exchange credential lifecycle records.
 - Added `0003_exchange_credentials` migration and a fail-closed live-start gate evaluator requiring the environment gate, verified no-withdrawal credential, approved strategy, configured risk, and final confirmation.
 - Added repository integration tests that use SQLite only as an isolated test database; production remains PostgreSQL-only.
+
+## 2026-08-05 credential-disclosure hardening
+
+- Refused to embed user-supplied live BingX credentials in source control; live keys shared outside a secret manager must be rotated before use.
+- Added a tracked-file secret scanner and wired it into CI.
+- Standardized documentation/startup messaging on the canonical `CRYPBOT_ENABLE_LIVE_TRADING` gate while keeping the old flag as a deprecated compatibility setting.
+- Status remains **not production-ready for real funds**; live execution still requires the documented credential, approval, risk, reconciliation, certification, and security-review gates.

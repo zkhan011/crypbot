@@ -10,6 +10,7 @@ jobs:
       - run: cd backend && pip install -e .
       - run: cd backend && ruff format --check .
       - run: cd backend && ruff check .
+      - run: python scripts/check_no_secrets.py
       - run: cd backend && mypy app
       - run: cd backend && pytest
   frontend:

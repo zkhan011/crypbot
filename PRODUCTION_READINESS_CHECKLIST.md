@@ -15,3 +15,9 @@
 | Notifications | Partial | Mock/Telegram boundary exists; add encrypted SMTP/Telegram settings, delivery jobs, retries, and monitoring. |
 | Deployment and backup | Partial | Provision secrets, TLS, least-privilege containers, tested backup/restore, monitoring, alerting, and incident drills. |
 | Security/legal review | Not started | Penetration test, threat model, dependency review, regulatory assessment, and controlled pilot are mandatory. |
+
+## Credential safety update
+
+- [x] Canonical environment gate documented as `CRYPBOT_ENABLE_LIVE_TRADING=false` by default.
+- [x] Repository secret scanner added to CI to block likely committed raw credentials.
+- [ ] Production live trading remains incomplete until credential UI/API workflow, exchange permission verification, certified BingX order endpoints, reconciliation jobs, penetration testing, and controlled live testing are finished.
