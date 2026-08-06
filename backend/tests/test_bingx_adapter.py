@@ -4,7 +4,7 @@ from urllib.parse import parse_qs
 import httpx
 import pytest
 
-from app.domain.types import OrderStatus, OrderType, Side
+from app.domain.trading_types import OrderStatus, OrderType, Side
 from app.exchanges.bingx import BingXClient, BingXError, BingXLiveGates, BingXLiveTradingDisabled, BingXSigner
 from app.exchanges.interfaces import OrderRequest
 

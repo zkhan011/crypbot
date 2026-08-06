@@ -2,9 +2,15 @@ from decimal import Decimal
 
 import pytest
 
-from app.domain.types import OrderType, Side
+from app.domain.trading_types import OrderType, Side
 from app.exchanges.interfaces import OrderRequest, SymbolMetadata
-from app.exchanges.safety import MarketDataCache, OrderValidationError, OrderValidationService, StaleMarketDataError
+from app.exchanges.safety import (
+    MarketDataCache,
+    OrderValidationError,
+    OrderValidationService,
+    StaleMarketDataError,
+    TradingRulesCache,
+)
 
 
 def rules() -> SymbolMetadata:
@@ -80,3 +86,21 @@ async def test_market_cache_returns_fresh_decimal_snapshot() -> None:
     snapshot = await cache.require_fresh("BTC-USDT")
     assert snapshot.last_price == Decimal("61000.25")
     assert snapshot.best_bid == Decimal("61000.1")
+
+
+@pytest.mark.asyncio
+async def test_trading_rules_cache_reuses_and_force_refreshes() -> None:
+    calls = 0
+
+    async def loader(symbol: str) -> SymbolMetadata:
+        nonlocal calls
+        calls += 1
+        return rules()
+
+    cache = TradingRulesCache(Decimal("900"))
+    await cache.get("BTC-USDT", loader)
+    await cache.get("BTC-USDT", loader)
+    assert calls == 1
+    cache.invalidate("BTC-USDT")
+    await cache.get("BTC-USDT", loader)
+    assert calls == 2
