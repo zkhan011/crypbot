@@ -2,7 +2,7 @@
 
 Crypbot is a modular-monolith cryptocurrency copy-trading and compliant automated execution platform. The initial runnable release defaults to the deterministic fake exchange in `MOCK` mode; BingX perpetual futures support is isolated behind exchange interfaces for future certified live integration.
 
-> Safety warning: this repository is not production-ready for real funds. Before LIVE use it requires security review, legal/regulatory review, exchange certification, penetration testing, load testing, disaster-recovery drills, and controlled live trials.
+> Safety warning: this repository is not production-ready for real funds. The bot-required BingX REST operations have contract-tested adapter implementations, but the runtime credential workflow and certified end-to-end LIVE composition remain incomplete. Before LIVE use it requires security review, legal/regulatory review, exchange certification, penetration testing, load testing, disaster-recovery drills, and controlled live trials.
 
 ## Architecture summary
 
@@ -68,7 +68,7 @@ DEMO exchange mode is a configuration target, not enabled by default. It must be
 
 ## Live-mode restrictions
 
-LIVE mode requires environment enablement, database enablement, platform administrator approval, organization administrator approval, verified non-withdrawal credentials, assigned risk profile, recent reconciliation, healthy market data/workers, and UI confirmation. The code intentionally does not submit BingX live orders in this initial release.
+LIVE mode requires environment enablement, database enablement, platform administrator approval, organization administrator approval, verified non-withdrawal credentials, assigned risk profile, recent reconciliation, healthy market data/workers, and UI confirmation. The BingX adapter implements fail-closed market/account/order REST calls, but it is not connected to the current in-memory control-plane runtime. Keep `CRYPBOT_EXECUTION_MODE=MOCK` and `CRYPBOT_ENABLE_LIVE_TRADING=false` until the blockers in `PRODUCTION_READINESS_CHECKLIST.md` are closed.
 
 ## Troubleshooting
 
@@ -115,3 +115,4 @@ Important safety note: mock market data is deterministic simulation data. It is 
 - [BACKUP_RESTORE.md](BACKUP_RESTORE.md)
 - [TENANT_ADMIN_GUIDE.md](TENANT_ADMIN_GUIDE.md)
 - [PEN_TEST_CHECKLIST.md](PEN_TEST_CHECKLIST.md)
+- [BingX API coverage and verification ledger](docs/bingx-api-coverage.md)
