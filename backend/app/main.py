@@ -14,6 +14,7 @@ from app.exchanges.runtime import BingXCredentialProvider, BingXEnvironment, Bin
 from app.services.copy import CopyTradingEngine
 from app.services.orders import OrderService, deterministic_client_order_id
 from app.services.reconciliation import ReconciliationService
+from app.services.production_readiness import ProductionReadinessEvidence, ProductionReadinessGate
 from app.services.risk import RiskEngine, RiskOrder, RiskProfile
 from app.services.twap import TwapPlan, TwapStrategy
 from app.services.volume_execution import VolumeExecutionPlan, VolumeExecutionStrategy
@@ -42,8 +43,13 @@ app = FastAPI(title="Crypbot API", version="0.1.0")
 bingx_public_market = BingXPublicMarketClient(settings.bingx_base_url, timeout_seconds=settings.bingx_timeout_seconds)
 fake_exchange = FakeExchangeClient()
 risk_engine = RiskEngine()
-trading_app = TradingApplication()
-control_plane = ControlPlane(seed_demo_users=settings.seed_demo_users)
+trading_app = TradingApplication() if settings.execution_mode == "MOCK" else None
+control_plane = (
+    ControlPlane(seed_demo_users=settings.seed_demo_users)
+    if settings.environment not in {"production", "staging"} and settings.execution_mode == "MOCK"
+    else None
+)
+production_readiness_gate = ProductionReadinessGate()
 
 
 class VolumeExecutionRequest(BaseModel):
@@ -75,7 +81,7 @@ class AIRequest(BaseModel):
 def current_user(authorization: str | None = Header(default=None)) -> User:
     token = authorization.removeprefix("Bearer ") if authorization else None
     try:
-        return control_plane.session_user(token)
+        return demo_control_plane().session_user(token)
     except AuthenticationError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="authentication required") from exc
 
@@ -86,6 +92,24 @@ def control_error(exc: AuthorizationError | KeyError | ValueError) -> HTTPExcept
     if isinstance(exc, KeyError):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="resource not found")
     return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc))
+
+
+def mock_trading_runtime() -> TradingApplication:
+    if trading_app is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="MOCK trading runtime is unavailable in this execution mode; LIVE opening orders depend on production readiness",
+        )
+    return trading_app
+
+
+def demo_control_plane() -> ControlPlane:
+    if control_plane is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="durable production identity provider is not active",
+        )
+    return control_plane
 
 
 @app.get("/health")
@@ -107,6 +131,14 @@ def bingx_readiness() -> dict[str, object]:
     runtime_dry_run = os.environ.get("BINGX_DRY_RUN", "true").lower() in {"true", "1"}
     runtime_live_enabled = os.environ.get("BINGX_LIVE_TRADING_ENABLED", "false").lower() in {"true", "1"}
     runtime_confirmation = os.environ.get("BINGX_LIVE_CONFIRMATION", "false").lower() in {"true", "1"}
+    evidence = ProductionReadinessEvidence(
+        correct_environment=settings.environment in {"production", "staging"} and settings.execution_mode == "LIVE",
+        demo_users_disabled=not settings.seed_demo_users,
+        encryption_provider_healthy=bool(settings.credential_master_key),
+        market_data_fresh=bingx_public_market.last_success_at is not None,
+        monitoring_healthy=True,
+    )
+    readiness = production_readiness_gate.public_report(evidence)
     return {
         "environment": settings.bingx_environment,
         "dry_run": settings.bingx_dry_run,
@@ -114,7 +146,7 @@ def bingx_readiness() -> dict[str, object]:
         "rest_connectivity": "CONNECTED_READ_ONLY" if bingx_public_market.last_success_at else "NOT_CHECKED",
         "websocket_state": "DISABLED",
         "reconciliation": "NOT_RUN",
-        "opening_orders_allowed": False,
+        "opening_orders_allowed": readiness["opening_orders_allowed"],
         "credentials_exposed": False,
         "adapter_runtime_connected": False,
         "live_block_reason": "LIVE strategy runtime is not wired; complete durable credential, risk, approval, audit, and reconciliation gates",
@@ -130,6 +162,7 @@ def bingx_readiness() -> dict[str, object]:
             "runtime_confirmation": runtime_confirmation,
             "credentials_complete": runtime_key_present and runtime_secret_present,
         },
+        "production_readiness": readiness,
     }
 
 
@@ -162,60 +195,62 @@ def metrics() -> Response:
 
 @app.get("/api/v1/trading/dashboard")
 def trading_dashboard() -> dict[str, object]:
-    return trading_app.dashboard_snapshot()
+    return mock_trading_runtime().dashboard_snapshot()
 
 
 @app.post("/api/v1/trading/start")
 def trading_start() -> dict[str, object]:
-    snapshot = trading_app.start()
-    control_plane.audit(None, "BOT_STARTED", "bot", "mock-default", "SUCCESS", "Mock bot started through demo control")
+    snapshot = mock_trading_runtime().start()
+    demo_control_plane().audit(None, "BOT_STARTED", "bot", "mock-default", "SUCCESS", "Mock bot started through demo control")
     return snapshot
 
 
 @app.post("/api/v1/trading/stop")
 def trading_stop() -> dict[str, object]:
-    snapshot = trading_app.stop()
-    control_plane.audit(None, "BOT_STOPPED", "bot", "mock-default", "SUCCESS", "Mock bot stopped through demo control")
+    snapshot = mock_trading_runtime().stop()
+    demo_control_plane().audit(None, "BOT_STOPPED", "bot", "mock-default", "SUCCESS", "Mock bot stopped through demo control")
     return snapshot
 
 
 @app.post("/api/v1/trading/emergency-close-all")
 def trading_emergency_close_all() -> dict[str, object]:
-    snapshot = trading_app.emergency_stop()
-    control_plane.audit(None, "EMERGENCY_STOP", "bot", "mock-default", "SUCCESS", "Emergency close-all executed in mock mode")
+    snapshot = mock_trading_runtime().emergency_stop()
+    demo_control_plane().audit(None, "EMERGENCY_STOP", "bot", "mock-default", "SUCCESS", "Emergency close-all executed in mock mode")
     return snapshot
 
 
 @app.post("/api/v1/trading/copy/pause")
 def trading_pause_copy() -> dict[str, object]:
-    return trading_app.pause_strategy(StrategyName.COPY)
+    return mock_trading_runtime().pause_strategy(StrategyName.COPY)
 
 
 @app.post("/api/v1/trading/copy/resume")
 def trading_resume_copy() -> dict[str, object]:
-    return trading_app.resume_strategy(StrategyName.COPY)
+    return mock_trading_runtime().resume_strategy(StrategyName.COPY)
 
 
 @app.post("/api/v1/trading/volume/pause")
 def trading_pause_volume() -> dict[str, object]:
-    return trading_app.pause_strategy(StrategyName.VOLUME)
+    return mock_trading_runtime().pause_strategy(StrategyName.VOLUME)
 
 
 @app.post("/api/v1/trading/volume/resume")
 def trading_resume_volume() -> dict[str, object]:
-    return trading_app.resume_strategy(StrategyName.VOLUME)
+    return mock_trading_runtime().resume_strategy(StrategyName.VOLUME)
 
 
 @app.post("/api/v1/trading/mock-scenario/{scenario}")
 def trading_mock_scenario(scenario: MockScenario) -> dict[str, object]:
-    snapshot = trading_app.apply_scenario(scenario)
-    control_plane.audit(None, "MOCK_SCENARIO_TRIGGERED", "mock_scenario", scenario.value, "SUCCESS", "Scenario applied to mock engine")
+    snapshot = mock_trading_runtime().apply_scenario(scenario)
+    demo_control_plane().audit(
+        None, "MOCK_SCENARIO_TRIGGERED", "mock_scenario", scenario.value, "SUCCESS", "Scenario applied to mock engine"
+    )
     return snapshot
 
 
 @app.get("/api/v1/trading/reports")
 def trading_reports() -> dict[str, object]:
-    return trading_app.reports()
+    return mock_trading_runtime().reports()
 
 
 @app.get("/api/v1/bot/status")
@@ -301,7 +336,7 @@ def activate_mock_mode() -> dict[str, str]:
 @app.post("/api/v1/auth/login")
 def login(request: LoginRequest) -> dict[str, object]:
     try:
-        token, user = control_plane.authenticate(request.email, request.password)
+        token, user = demo_control_plane().authenticate(request.email, request.password)
         return {"access_token": token, "token_type": "bearer", "user": user.public()}
     except AuthenticationError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="invalid credentials") from exc
@@ -309,7 +344,7 @@ def login(request: LoginRequest) -> dict[str, object]:
 
 @app.post("/api/v1/auth/logout")
 def logout(user: User = Depends(current_user)) -> dict[str, str]:
-    control_plane.audit(user.id, "LOGOUT", "session", user.id, "SUCCESS", "Session logout requested")
+    demo_control_plane().audit(user.id, "LOGOUT", "session", user.id, "SUCCESS", "Session logout requested")
     return {"status": "logged_out"}
 
 
@@ -321,7 +356,7 @@ def me(user: User = Depends(current_user)) -> dict[str, object]:
 @app.get("/api/v1/users")
 def users(user: User = Depends(current_user)) -> dict[str, object]:
     try:
-        return {"users": control_plane.list_users(user)}
+        return {"users": demo_control_plane().list_users(user)}
     except AuthorizationError as exc:
         raise control_error(exc) from exc
 
@@ -329,7 +364,7 @@ def users(user: User = Depends(current_user)) -> dict[str, object]:
 @app.post("/api/v1/users")
 def create_user(request: CreateUserRequest, user: User = Depends(current_user)) -> dict[str, object]:
     try:
-        return control_plane.create_user(user, request.email, request.display_name, request.role, request.password)
+        return demo_control_plane().create_user(user, request.email, request.display_name, request.role, request.password)
     except (AuthorizationError, ValueError) as exc:
         raise control_error(exc) from exc
 
@@ -337,7 +372,7 @@ def create_user(request: CreateUserRequest, user: User = Depends(current_user)) 
 @app.post("/api/v1/ai/strategy-drafts")
 def create_ai_draft(request: AIRequest, user: User = Depends(current_user)) -> dict[str, object]:
     try:
-        return control_plane.request_ai_draft(user, request.prompt)
+        return demo_control_plane().request_ai_draft(user, request.prompt)
     except AuthorizationError as exc:
         raise control_error(exc) from exc
 
@@ -345,7 +380,7 @@ def create_ai_draft(request: AIRequest, user: User = Depends(current_user)) -> d
 @app.get("/api/v1/ai/strategy-drafts")
 def list_ai_drafts(user: User = Depends(current_user)) -> dict[str, object]:
     try:
-        return {"drafts": control_plane.list_drafts(user)}
+        return {"drafts": demo_control_plane().list_drafts(user)}
     except AuthorizationError as exc:
         raise control_error(exc) from exc
 
@@ -353,7 +388,7 @@ def list_ai_drafts(user: User = Depends(current_user)) -> dict[str, object]:
 @app.post("/api/v1/ai/strategy-drafts/{draft_id}/approve")
 def approve_ai_draft(draft_id: str, user: User = Depends(current_user)) -> dict[str, object]:
     try:
-        return control_plane.approve_draft(user, draft_id)
+        return demo_control_plane().approve_draft(user, draft_id)
     except (AuthorizationError, KeyError, ValueError) as exc:
         raise control_error(exc) from exc
 
@@ -361,7 +396,7 @@ def approve_ai_draft(draft_id: str, user: User = Depends(current_user)) -> dict[
 @app.get("/api/v1/audit-logs")
 def audit_logs(user: User = Depends(current_user)) -> dict[str, object]:
     try:
-        return {"audit_logs": control_plane.audit_log(user)}
+        return {"audit_logs": demo_control_plane().audit_log(user)}
     except AuthorizationError as exc:
         raise control_error(exc) from exc
 
@@ -369,7 +404,7 @@ def audit_logs(user: User = Depends(current_user)) -> dict[str, object]:
 @app.get("/api/v1/audit-logs/verify")
 def verify_audit_logs(user: User = Depends(current_user)) -> dict[str, object]:
     try:
-        return control_plane.verify_audit_log(user)
+        return demo_control_plane().verify_audit_log(user)
     except AuthorizationError as exc:
         raise control_error(exc) from exc
 

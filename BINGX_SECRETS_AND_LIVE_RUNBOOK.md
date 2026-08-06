@@ -145,10 +145,11 @@ configuration, reconciliation, final confirmation, or audit recording.
 LIVE must not be started from the current repository state because its readiness
 checklist still contains unresolved real-money release blockers.
 
-The backend enforces this statement: startup rejects production/staging and LIVE
-execution even when all environment flags are set. This prevents a configuration
-change from connecting the in-memory MOCK control plane to real funds. There is
-no supported override variable.
+The backend enforces this statement through `ProductionReadinessGate`. A
+structurally valid production process can start for read-only diagnostics, but
+it reports `LIVE_PAUSED` and rejects opening orders until every server-derived
+check passes. Environment flags are not readiness evidence and there is no
+supported override variable.
 
 ## Troubleshooting prices versus LIVE activation
 

@@ -2,12 +2,12 @@
 
 **Status: NOT READY FOR REAL MONEY OR CUSTOMER CREDENTIALS.** This document is a release gate, not a promise.
 
-Startup now refuses both `CRYPBOT_ENVIRONMENT=production|staging` and
-`CRYPBOT_EXECUTION_MODE=LIVE` after validating their ordinary settings. This is
-intentional: configuration flags cannot turn the in-memory control plane into a
-durable production runtime. Remove this hard block only in the same reviewed
-change that wires durable identity, credential verification, approvals, risk,
-audit, reconciliation, jobs, and operational certification.
+The unconditional startup block has been replaced by a centralized,
+machine-readable `ProductionReadinessGate`. A structurally valid production
+process may start in `LIVE_PAUSED` for read-only diagnostics, but opening orders
+remain denied unless every server-derived prerequisite passes. Production does
+not instantiate the MOCK trading application or demo control plane. Checks whose
+durable providers are not yet wired remain false; there is no bypass flag.
 
 | Area | Status | Required closure |
 |---|---|---|

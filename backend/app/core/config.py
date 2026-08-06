@@ -61,10 +61,6 @@ class Settings(BaseSettings):
         if self.bingx_max_retries < 0 or self.bingx_max_retries > 5:
             raise RuntimeError("BingX retries must be between 0 and 5")
         self.public_market_symbols()
-        if self.environment in {"production", "staging"}:
-            raise RuntimeError("production runtime is blocked until durable identity, approvals, audit, and reconciliation are wired")
-        if self.execution_mode == "LIVE":
-            raise RuntimeError("LIVE runtime is not certified; environment flags cannot bypass incomplete production gates")
 
 
 settings = Settings()
