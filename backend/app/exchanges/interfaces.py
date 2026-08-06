@@ -20,6 +20,8 @@ class OrderRequest(BaseModel):
     quantity: Decimal
     client_order_id: str
     price: Decimal | None = None
+    trigger_price: Decimal | None = None
+    reduce_only: bool = False
 
 
 class OrderResult(BaseModel):
@@ -45,8 +47,32 @@ class Position(BaseModel):
     leverage: Decimal
 
 
+class Candle(BaseModel):
+    open_time: int
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: Decimal
+
+
+class OrderBookLevel(BaseModel):
+    price: Decimal
+    quantity: Decimal
+
+
+class OrderBook(BaseModel):
+    symbol: str
+    bids: list[OrderBookLevel]
+    asks: list[OrderBookLevel]
+    exchange_timestamp: int | None = None
+
+
 class MarketDataClient(Protocol):
     async def symbol_metadata(self, symbol: str) -> SymbolMetadata: ...
+    async def price(self, symbol: str) -> Decimal: ...
+    async def candles(self, symbol: str, interval: str, limit: int = 100) -> list[Candle]: ...
+    async def order_book(self, symbol: str, limit: int = 20) -> OrderBook: ...
 
 
 class AccountDataClient(Protocol):

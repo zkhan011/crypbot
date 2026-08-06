@@ -144,3 +144,17 @@
 - Added a tracked-file secret scanner and wired it into CI.
 - Standardized documentation/startup messaging on the canonical `CRYPBOT_ENABLE_LIVE_TRADING` gate while keeping the old flag as a deprecated compatibility setting.
 - Status remains **not production-ready for real funds**; live execution still requires the documented credential, approval, risk, reconciliation, certification, and security-review gates.
+
+## 2026-08-05 production credential guidance
+
+- Clarified that production infrastructure mode must not be confused with LIVE trading enablement.
+- Documented that BingX API keys and secrets must not be stored in environment example files or source control; they belong only in the encrypted credential workflow once that runtime API/UI is completed.
+- Reconfirmed that MOCK mode remains the only safe operating mode in the current codebase.
+
+## 2026-08-06 BingX REST adapter increment
+
+- Replaced the signing-only BingX skeleton with bot-required perpetual-futures REST operations for contract metadata, price, candles, order book, balances, positions, order create/query/cancel, normalized errors, and bounded safe-read retries.
+- Added five independent live-order gates: environment permission, verified credentials, approved strategy, configured risk limits, and final administrator confirmation. Mutation requests are never blindly retried.
+- Added transport-level contract tests proving signing, internal account-ID non-disclosure, Decimal parsing, status mapping, error redaction, and fail-closed order behavior.
+- Extended the fake adapter with the same market-data interface so MOCK and LIVE use matching contracts.
+- Current status remains **not production-ready for real funds**. Official documentation access was blocked by the build environment proxy, and controlled BingX demo certification (including protective orders), WebSockets, credential runtime wiring, and reconciliation soak tests remain open.

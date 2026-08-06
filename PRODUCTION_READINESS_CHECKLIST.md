@@ -21,3 +21,9 @@
 - [x] Canonical environment gate documented as `CRYPBOT_ENABLE_LIVE_TRADING=false` by default.
 - [x] Repository secret scanner added to CI to block likely committed raw credentials.
 - [ ] Production live trading remains incomplete until credential UI/API workflow, exchange permission verification, certified BingX order endpoints, reconciliation jobs, penetration testing, and controlled live testing are finished.
+
+## Production mode versus LIVE trading
+
+Production infrastructure mode can be configured with `CRYPBOT_ENVIRONMENT=production` while leaving `CRYPBOT_EXECUTION_MODE=MOCK` and `CRYPBOT_ENABLE_LIVE_TRADING=false`. This is the recommended customer-infrastructure smoke-test posture.
+
+LIVE trading is still blocked unless the encrypted credential UI/API workflow, BingX permission verification, approved strategy checks, durable risk settings, final confirmation, reconciliation, monitoring, and audit gates are completed and tested.

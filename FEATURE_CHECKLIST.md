@@ -5,7 +5,10 @@ This checklist is intentionally conservative. **YES** means the current source c
 | Feature | Backend | Frontend | Mock | Live | RBAC | Tests | Docs | Notes |
 |---|---|---|---|---|---|---|---|---|
 | MOCK exchange, balance, prices, candles, order book, orders and positions | YES | YES | YES | N/A | N/A | YES | YES | Deterministic fake adapter; no real funds. |
-| BingX live adapter boundary and explicit environment gate | YES | NO | N/A | GATED | N/A | YES | YES | Real endpoint coverage/certification remains required. |
+| BingX market data: metadata, price, candles, order book | YES | NO | YES | GATED | N/A | YES | YES | REST and fake adapters implemented; official environment certification remains required. |
+| BingX balance and open positions | YES | NO | YES | GATED | N/A | YES | YES | Signed REST calls implemented; encrypted credential runtime composition is incomplete. |
+| BingX order create/query/cancel | YES | NO | YES | GATED | N/A | YES | YES | Idempotent client ID and five explicit live gates; no real-order certification has been performed. |
+| BingX retry/error handling | YES | NO | YES | GATED | N/A | YES | YES | Safe reads retry transient failures; mutations are not blindly retried. WebSocket certification remains open. |
 | Copy signal and volume-momentum signal paths | YES | YES | YES | GATED | N/A | YES | YES | Volume logic uses market signals only, never artificial volume. |
 | Shared trade risk and emergency stop | YES | YES | YES | GATED | N/A | YES | YES | Existing mock checks are a subset of required production controls. |
 | Mock scenario center and notification preview | YES | YES | YES | N/A | N/A | YES | YES | Backend scenario selection is connected to the dashboard. |
@@ -21,7 +24,7 @@ This checklist is intentionally conservative. **YES** means the current source c
 
 ## Required next steps before real-money use
 
-1. Implement and certify BingX REST/WebSocket calls using current official documentation and a controlled DEMO environment.
+1. Verify the bot-required BingX REST contracts against the current official documentation and certify them in a controlled BingX demo environment; implement/certify private and market WebSocket supervisors.
 2. Replace in-memory users, sessions, audit events, strategy drafts, orders, and reports with tenant-scoped PostgreSQL repositories and migrations.
 3. Add refresh-token rotation, CSRF/cookie controls as applicable, MFA, credential verification (including withdrawal-permission rejection), and independent security review.
 4. Add full settings/configuration CRUD, email provider, monitoring, load/failure testing, penetration testing, regulatory review, and controlled live rollout.

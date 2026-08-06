@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     seed_demo_users: bool = True
     production_bootstrap_admin_email: str = ""
     bingx_base_url: str = "https://open-api.bingx.com"
+    bingx_timeout_seconds: int = 10
+    bingx_max_retries: int = 2
+    bingx_recv_window_ms: int = 5_000
 
     def validate_startup_security(self) -> None:
         if self.environment in {"production", "staging"}:
@@ -30,6 +33,10 @@ class Settings(BaseSettings):
             raise RuntimeError("LIVE mode requires CRYPBOT_ENABLE_LIVE_TRADING=true")
         if self.execution_mode == "LIVE" and not self.credential_master_key:
             raise RuntimeError("LIVE mode requires an encryption master key")
+        if self.bingx_timeout_seconds < 1 or self.bingx_timeout_seconds > 60:
+            raise RuntimeError("BingX timeout must be between 1 and 60 seconds")
+        if self.bingx_max_retries < 0 or self.bingx_max_retries > 5:
+            raise RuntimeError("BingX retries must be between 0 and 5")
 
 
 settings = Settings()
