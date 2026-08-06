@@ -1,13 +1,13 @@
 from decimal import Decimal
 import pytest
 from app.core.security import CredentialCipher, redact
-from app.domain.trading_types import CopyInstructionState, Side, quantize_down
+from app.domain.types import CopyInstructionState, Side, quantize_down
 from app.exchanges.bingx import BingXSigner
 from app.exchanges.fake import FakeExchangeClient
-from app.exchanges.interfaces import Fill, OrderRequest
-from app.domain.trading_types import OrderType, OrderStatus
+from app.exchanges.interfaces import OrderRequest
+from app.domain.types import OrderType, OrderStatus
 from app.services.copy import CopyTradingEngine
-from app.services.orders import OrderService, deterministic_client_order_id, deterministic_strategy_order_id
+from app.services.orders import OrderService, deterministic_client_order_id
 from app.services.reconciliation import ReconciliationService
 from app.services.risk import RiskEngine, RiskOrder, RiskProfile
 from app.services.twap import TwapPlan, TwapStrategy
@@ -32,36 +32,6 @@ def test_kill_switch_rejects():
         RiskProfile(account_kill_switch=True),
     )
     assert d.reason_code == "ACCOUNT_KILL_SWITCH"
-
-
-def test_risk_reducing_action_survives_kill_switch_but_opening_stale_data_fails():
-    engine = RiskEngine()
-    reducing = engine.evaluate(
-        RiskOrder(
-            "BTC-USDT",
-            Side.SELL,
-            Decimal("0.01"),
-            Decimal("100"),
-            Decimal("1"),
-            Decimal("1000"),
-            position_reducing=True,
-        ),
-        RiskProfile(account_kill_switch=True),
-    )
-    assert reducing.accepted and reducing.reason_code == "RISK_REDUCTION_ALLOWED"
-    stale = engine.evaluate(
-        RiskOrder(
-            "BTC-USDT",
-            Side.BUY,
-            Decimal("0.01"),
-            Decimal("100"),
-            Decimal("1"),
-            Decimal("1000"),
-            market_data_fresh=False,
-        ),
-        RiskProfile(),
-    )
-    assert not stale.accepted and stale.reason_code == "STALE_MARKET_DATA"
 
 
 def test_copy_state_machine_risk():
@@ -109,57 +79,9 @@ async def test_unknown_order_reconciles_after_timeout():
     assert res.status == OrderStatus.FILLED
 
 
-@pytest.mark.asyncio
-async def test_timeout_recovers_from_confirmed_fills_without_resubmit():
-    class AmbiguousExchange(FakeExchangeClient):
-        async def submit_order(self, request):
-            raise TimeoutError("ambiguous")
-
-        async def get_order_by_client_id(self, account_id, client_order_id):
-            return None
-
-        async def open_orders(self, symbol=None):
-            return []
-
-        async def order_history(self, symbol=None):
-            return []
-
-        async def fills(self, symbol=None):
-            return [
-                Fill(
-                    fill_id="fill",
-                    order_id="exchange-order",
-                    client_order_id="client-id",
-                    symbol="BTC-USDT",
-                    side=Side.BUY,
-                    price=Decimal("100"),
-                    quantity=Decimal("0.01"),
-                )
-            ]
-
-    request = OrderRequest(
-        account_id="account",
-        symbol="BTC-USDT",
-        side=Side.BUY,
-        order_type=OrderType.MARKET,
-        quantity=Decimal("0.01"),
-        client_order_id="client-id",
-    )
-    result = await OrderService(AmbiguousExchange()).submit_idempotent(request)
-    assert result.status == OrderStatus.FILLED
-    assert result.exchange_order_id == "exchange-order"
-    assert result.reason == "RECOVERED_FROM_FILLS_AFTER_TIMEOUT"
-
-
 def test_reconciliation_mismatches():
     cats = [i.category for i in ReconciliationService().compare_orders({"a"}, {"b"})]
     assert cats == ["Local order missing on exchange", "Exchange order missing locally"]
-
-
-def test_strategy_client_order_id_is_deterministic_and_sequence_unique():
-    first = deterministic_strategy_order_id("COPY", "account", "source", "BTC-USDT", "OPEN_LONG", 1)
-    assert first == deterministic_strategy_order_id("COPY", "account", "source", "BTC-USDT", "OPEN_LONG", 1)
-    assert first != deterministic_strategy_order_id("COPY", "account", "source", "BTC-USDT", "OPEN_LONG", 2)
 
 
 def test_volume_execution_caps_participation():

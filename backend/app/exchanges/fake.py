@@ -1,6 +1,6 @@
 from decimal import Decimal
-from app.domain.trading_types import OrderStatus, OrderType
-from app.exchanges.interfaces import Balance, Candle, OrderBook, OrderBookLevel, OrderRequest, OrderResult, Position, SymbolMetadata
+from app.domain.types import OrderStatus, OrderType
+from app.exchanges.interfaces import Balance, OrderRequest, OrderResult, Position, SymbolMetadata
 
 
 class FakeExchangeClient:
@@ -16,30 +16,6 @@ class FakeExchangeClient:
             quantity_step=Decimal("0.001"),
             tick_size=Decimal("0.1"),
             min_notional=Decimal("5"),
-        )
-
-    async def price(self, symbol: str) -> Decimal:
-        return Decimal("100")
-
-    async def candles(self, symbol: str, interval: str, limit: int = 100) -> list[Candle]:
-        return [
-            Candle(
-                open_time=index * 60_000,
-                open=Decimal("99"),
-                high=Decimal("101"),
-                low=Decimal("98"),
-                close=Decimal("100"),
-                volume=Decimal("10"),
-            )
-            for index in range(limit)
-        ]
-
-    async def order_book(self, symbol: str, limit: int = 20) -> OrderBook:
-        return OrderBook(
-            symbol=symbol,
-            bids=[OrderBookLevel(price=Decimal("99.9"), quantity=Decimal("1"))],
-            asks=[OrderBookLevel(price=Decimal("100.1"), quantity=Decimal("1"))],
-            exchange_timestamp=0,
         )
 
     async def balances(self, account_id: str) -> list[Balance]:
@@ -69,6 +45,6 @@ class FakeExchangeClient:
     async def get_order_by_client_id(self, account_id: str, client_order_id: str) -> OrderResult | None:
         return self.orders.get((account_id, client_order_id))
 
-    async def cancel_order(self, account_id: str, client_order_id: str, symbol: str | None = None) -> OrderResult:
+    async def cancel_order(self, account_id: str, client_order_id: str) -> OrderResult:
         existing = self.orders[(account_id, client_order_id)]
         return existing.model_copy(update={"status": OrderStatus.CANCELLED})

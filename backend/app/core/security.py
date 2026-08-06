@@ -1,6 +1,6 @@
 import base64, json, re
 from dataclasses import dataclass
-from typing import Any, cast
+from typing import Any
 from argon2 import PasswordHasher
 from argon2.exceptions import VerificationError
 from cryptography.fernet import Fernet, InvalidToken
@@ -50,10 +50,7 @@ class CredentialCipher:
 
     def decrypt_json(self, encrypted: EncryptedPayload) -> dict[str, str]:
         try:
-            decoded = json.loads(self._fernet.decrypt(encrypted.ciphertext.encode()))
-            if not isinstance(decoded, dict) or not all(isinstance(key, str) and isinstance(value, str) for key, value in decoded.items()):
-                raise ValueError("credential payload has invalid structure")
-            return cast(dict[str, str], decoded)
+            return json.loads(self._fernet.decrypt(encrypted.ciphertext.encode()))
         except InvalidToken as exc:
             raise ValueError("credential decryption failed") from exc
 

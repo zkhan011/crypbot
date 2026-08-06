@@ -1,4 +1,3 @@
-import os
 from datetime import UTC, datetime
 from decimal import Decimal
 from fastapi import Depends, FastAPI, Header, HTTPException, status
@@ -6,10 +5,9 @@ from pydantic import BaseModel, Field
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from starlette.responses import Response
 from app.core.config import settings
-from app.domain.trading_types import OrderType, Side
+from app.domain.types import OrderType, Side
 from app.exchanges.fake import FakeExchangeClient
 from app.exchanges.interfaces import OrderRequest
-from app.exchanges.runtime import BingXCredentialProvider, BingXEnvironment, BingXEnvironmentGuard
 from app.services.copy import CopyTradingEngine
 from app.services.orders import OrderService, deterministic_client_order_id
 from app.services.reconciliation import ReconciliationService
@@ -20,23 +18,6 @@ from app.services.control_plane import AuthenticationError, AuthorizationError, 
 from app.services.trading_platform import MockScenario, StrategyName, TradingApplication
 
 settings.validate_startup_security()
-if settings.execution_mode == "LIVE":
-    credential_provider = BingXCredentialProvider()
-    credential_provider.load(required=True)
-    runtime_environment = credential_provider.environment()
-    runtime_base_url = credential_provider.base_url(required=True)
-    runtime_dry_run = credential_provider.boolean("BINGX_DRY_RUN", default=True)
-    runtime_live_enabled = credential_provider.boolean("BINGX_LIVE_TRADING_ENABLED", default=False)
-    runtime_confirmation = credential_provider.boolean("BINGX_LIVE_CONFIRMATION", default=False)
-    if runtime_environment != BingXEnvironment.LIVE or runtime_base_url is None:
-        raise RuntimeError("LIVE mode requires a complete BingX LIVE runtime configuration")
-    BingXEnvironmentGuard(
-        environment=runtime_environment,
-        dry_run=settings.bingx_dry_run or runtime_dry_run,
-        live_trading_enabled=settings.enable_live_trading and runtime_live_enabled,
-        live_confirmation=settings.bingx_live_confirmation and runtime_confirmation,
-        production_base_urls=frozenset({settings.bingx_base_url.rstrip("/")}),
-    ).validate(runtime_base_url, automated_test=bool(os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("CI")))
 app = FastAPI(title="Crypbot API", version="0.1.0")
 fake_exchange = FakeExchangeClient()
 risk_engine = RiskEngine()
@@ -87,28 +68,8 @@ def control_error(exc: AuthorizationError | KeyError | ValueError) -> HTTPExcept
 
 
 @app.get("/health")
-def health() -> dict[str, str | bool]:
-    return {
-        "status": "ok",
-        "mode": settings.execution_mode,
-        "bingx_environment": settings.bingx_environment,
-        "bingx_dry_run": settings.bingx_dry_run,
-        "live_trading_enabled": settings.enable_live_trading,
-    }
-
-
-@app.get("/api/v1/bingx/readiness")
-def bingx_readiness() -> dict[str, str | bool]:
-    return {
-        "environment": settings.bingx_environment,
-        "dry_run": settings.bingx_dry_run,
-        "live_trading_enabled": settings.enable_live_trading,
-        "rest_connectivity": "NOT_CONNECTED",
-        "websocket_state": "DISABLED",
-        "reconciliation": "NOT_RUN",
-        "opening_orders_allowed": False,
-        "credentials_exposed": False,
-    }
+def health() -> dict[str, str]:
+    return {"status": "ok", "mode": settings.execution_mode}
 
 
 @app.get("/ready")

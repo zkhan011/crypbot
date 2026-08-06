@@ -26,17 +26,3 @@ def test_live_requires_explicit_gate_and_encryption_key():
         Settings(execution_mode="LIVE", enable_live_trading=False).validate_startup_security()
     with pytest.raises(RuntimeError, match="encryption master key"):
         Settings(execution_mode="LIVE", enable_live_trading=True).validate_startup_security()
-
-
-def test_live_requires_exchange_environment_dry_run_disable_and_confirmation():
-    common = {
-        "execution_mode": "LIVE",
-        "enable_live_trading": True,
-        "credential_master_key": "secure-master-key",
-    }
-    with pytest.raises(RuntimeError, match="BINGX_ENVIRONMENT=LIVE"):
-        Settings(**common).validate_startup_security()
-    with pytest.raises(RuntimeError, match="BINGX_DRY_RUN=false"):
-        Settings(**common, bingx_environment="LIVE").validate_startup_security()
-    with pytest.raises(RuntimeError, match="BINGX_LIVE_CONFIRMATION=true"):
-        Settings(**common, bingx_environment="LIVE", bingx_dry_run=False).validate_startup_security()

@@ -13,16 +13,7 @@ from uuid import uuid4
 
 from sqlalchemy import Connection, and_, insert, select, update
 
-from app.db.models import (
-    audit_log_chain,
-    bot_instances,
-    exchange_credentials,
-    order_intents,
-    reconciliation_runs,
-    source_trade_events,
-    system_settings,
-    tenants,
-)
+from app.db.models import audit_log_chain, bot_instances, exchange_credentials, system_settings, tenants
 from app.services.durable_security import AuditHashChain, AuditChainEntry, StoredCredential
 
 
@@ -204,129 +195,6 @@ class ExchangeCredentialRepository:
             )
         )
         return self.get(tenant_id, credential_id)
-
-
-class SourceTradeEventRepository:
-    def __init__(self, connection: Connection) -> None:
-        self.connection = connection
-
-    def record_once(self, tenant_id: str, leader_id: str, source_event_id: str, payload: dict[str, Any]) -> bool:
-        existing = self.connection.execute(
-            select(source_trade_events.c.id).where(
-                and_(
-                    source_trade_events.c.tenant_id == tenant_id,
-                    source_trade_events.c.leader_id == leader_id,
-                    source_trade_events.c.source_event_id == source_event_id,
-                )
-            )
-        ).one_or_none()
-        if existing is not None:
-            return False
-        self.connection.execute(
-            insert(source_trade_events).values(
-                id=str(uuid4()), tenant_id=tenant_id, leader_id=leader_id, source_event_id=source_event_id, payload=payload
-            )
-        )
-        return True
-
-
-class OrderIntentRepository:
-    def __init__(self, connection: Connection) -> None:
-        self.connection = connection
-
-    def create(
-        self,
-        *,
-        tenant_id: str,
-        bot_id: str,
-        account_id: str,
-        environment: str,
-        product: str,
-        strategy: str,
-        source_event_id: str | None,
-        client_order_id: str,
-        symbol: str,
-        requested: dict[str, Any],
-    ) -> dict[str, Any]:
-        intent_id = str(uuid4())
-        self.connection.execute(
-            insert(order_intents).values(
-                id=intent_id,
-                tenant_id=tenant_id,
-                bot_id=bot_id,
-                account_id=account_id,
-                environment=environment,
-                product=product,
-                strategy=strategy,
-                source_event_id=source_event_id,
-                client_order_id=client_order_id,
-                symbol=symbol,
-                requested=requested,
-                state="PERSISTED",
-            )
-        )
-        return self.get(tenant_id, intent_id)
-
-    def get(self, tenant_id: str, intent_id: str) -> dict[str, Any]:
-        row = (
-            self.connection.execute(
-                select(order_intents).where(and_(order_intents.c.tenant_id == tenant_id, order_intents.c.id == intent_id))
-            )
-            .mappings()
-            .one_or_none()
-        )
-        if row is None:
-            raise RepositoryNotFoundError("order intent not found")
-        return dict(row)
-
-    def unfinished(self, tenant_id: str, account_id: str) -> list[dict[str, Any]]:
-        terminal = {"FILLED", "CANCELLED", "REJECTED"}
-        rows = self.connection.execute(
-            select(order_intents).where(and_(order_intents.c.tenant_id == tenant_id, order_intents.c.account_id == account_id))
-        ).mappings()
-        return [dict(row) for row in rows if row["state"] not in terminal]
-
-
-class ReconciliationRunRepository:
-    def __init__(self, connection: Connection) -> None:
-        self.connection = connection
-
-    def start(self, tenant_id: str, account_id: str) -> dict[str, Any]:
-        run_id = str(uuid4())
-        self.connection.execute(
-            insert(reconciliation_runs).values(
-                id=run_id,
-                tenant_id=tenant_id,
-                account_id=account_id,
-                status="RUNNING",
-                incidents=[],
-                started_at=datetime.now(UTC),
-            )
-        )
-        return self.get(tenant_id, run_id)
-
-    def complete(self, tenant_id: str, run_id: str, incidents: list[dict[str, Any]]) -> dict[str, Any]:
-        status = "SUCCEEDED" if not incidents else "MANUAL_REVIEW"
-        result = self.connection.execute(
-            update(reconciliation_runs)
-            .where(and_(reconciliation_runs.c.tenant_id == tenant_id, reconciliation_runs.c.id == run_id))
-            .values(status=status, incidents=incidents, completed_at=datetime.now(UTC))
-        )
-        if result.rowcount != 1:
-            raise RepositoryNotFoundError("reconciliation run not found")
-        return self.get(tenant_id, run_id)
-
-    def get(self, tenant_id: str, run_id: str) -> dict[str, Any]:
-        row = (
-            self.connection.execute(
-                select(reconciliation_runs).where(and_(reconciliation_runs.c.tenant_id == tenant_id, reconciliation_runs.c.id == run_id))
-            )
-            .mappings()
-            .one_or_none()
-        )
-        if row is None:
-            raise RepositoryNotFoundError("reconciliation run not found")
-        return dict(row)
 
 
 def live_start_allowed(
