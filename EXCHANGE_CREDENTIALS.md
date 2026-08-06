@@ -1,8 +1,5 @@
 # Exchange credential handling
 
-For the operator procedure, see `BINGX_SECRETS_AND_LIVE_RUNBOOK.md`. It gives the
-exact runtime variable names while keeping real values outside Git.
-
 Only trading and market-data permissions are permitted. **Do not create or use withdrawal permissions.** API keys/secrets are encrypted before durable storage and API responses expose only a masked API-key identifier. The raw secret is decrypted only inside a live adapter after all LIVE gates have passed.
 
 Before any future live activation, an authorized administrator must rotate/verify credentials, confirm the exchange account has no withdrawal permission, validate account and market-data access, record a successful verification time, and retain the audit record. The current BingX path is intentionally gated and not certified for real order submission.
@@ -43,4 +40,4 @@ CRYPBOT_REDIS_URL=<redis-production-url>
 
 Only after all documented live-readiness gates pass should `CRYPBOT_EXECUTION_MODE=LIVE` and `CRYPBOT_ENABLE_LIVE_TRADING=true` be set in a protected runtime secret store. Even then, live bot start must remain blocked unless verified encrypted credentials, approved strategies, configured risk settings, explicit final confirmation, and audit records are present.
 
-The BingX key and secret are intentionally not accepted as Pydantic `CRYPBOT_BINGX_API_KEY` or `CRYPBOT_BINGX_API_SECRET` settings, where configuration dumps could expose them. The runtime secret provider reads only the exact `BINGX_API_KEY` and `BINGX_API_SECRET` names from protected process injection, redacts its representation, and never persists them. Rotation is performed by updating the secret manager and restarting the API/workers. Tenant-managed encrypted credential ingestion remains a separate incomplete workflow; do not enter live customer keys until permission verification and demo certification are complete.
+The BingX key and secret are not accepted as `CRYPBOT_BINGX_API_KEY` or `CRYPBOT_BINGX_API_SECRET` environment variables. This is intentional: tenant credentials must be encrypted at ingestion, tenant-scoped, masked on every read, and decrypted only inside the exchange adapter. Until that authenticated credential endpoint is wired, there is no approved place to enter a live key.

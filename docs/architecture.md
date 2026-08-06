@@ -28,10 +28,6 @@ The first migration creates organizations, users, roles, user roles, exchange ac
 
 The trading engine depends on protocols, not BingX classes. New exchanges implement the protocol set. BingX signing uses HMAC-SHA256 canonical query signing documented by BingX; live order placement remains gated pending certification.
 
-Contract-independent BingX controls are split into exchange-local modules: `runtime.py` loads redacted process-injected credentials and enforces environment/URL gates; `resilience.py` provides midpoint time-offset, fail-closed endpoint-limit, and circuit-breaker primitives; `safety.py` provides Decimal order normalization and stale-market rejection; and `account_types.py` preserves raw exchange account types while normalizing only proven aliases. The machine-readable registry in `config/bingx-endpoints.yaml` is JSON-compatible YAML and is validated against the Markdown ledger without adding a YAML runtime dependency.
-
-The USDT-M client now separates market snapshots, account/position reads, position controls, order creation, cancellation, and emergency reduction into scoped methods. Signed calls use corrected exchange time, canonical signatures, response-envelope validation, typed error mapping, token-bucket application limits, and circuit protection. `bingx_websocket.py` implements configurable WSS transport, compression, deduplication, resubscription, stale detection, reconnect, and REST recovery while leaving unreviewed private subscription payloads disabled. Migration `0004_bingx_execution_records` adds durable source-event, intent, exchange-order, fill, allocation, position, volume-session, and reconciliation records.
-
 ## Phases
 
 1. Repository bootstrap, documentation, infrastructure, backend/frontend skeleton.

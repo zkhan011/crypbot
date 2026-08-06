@@ -7,9 +7,6 @@
 - BingX unavailable: pause affected exchange accounts and run reconciliation after recovery.
 - WebSocket disconnected: pause event-driven copy, reconnect, replay REST reconciliation.
 - Unknown order state: mark UNKNOWN, query by client order ID, reconcile before any retry.
-- BingX startup: apply migrations, validate the registry, run the non-trading demo report, then require a successful startup reconciliation before enabling opening strategies.
-- Dead-man switch: refresh only while workers and reconciliation are healthy; loss of health must stop refresh and alert operators.
-- Excessive cancellations: pause opening orders when the configured cancellation-ratio guard rejects; preserve reviewed cancellation/reduction capacity.
 - Reconciliation mismatch: create incident, alert operator, apply configured policy.
 - Compromised API key: activate account kill switch, revoke key at exchange, rotate credentials, audit access.
 - Kill switch: confirm impact, activate platform/org/account/strategy/symbol switch, verify risk rejects new orders.

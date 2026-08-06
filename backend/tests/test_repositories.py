@@ -10,11 +10,8 @@ from sqlalchemy import create_engine
 from app.db.models import metadata
 from app.db.repositories import (
     BotInstanceRepository,
-    OrderIntentRepository,
-    ReconciliationRunRepository,
     RepositoryNotFoundError,
     TenantRepository,
-    SourceTradeEventRepository,
     VersionedSettingsRepository,
     live_start_allowed,
 )
@@ -48,32 +45,3 @@ def test_live_start_requires_every_gate():
     assert not allowed and code == "CREDENTIAL_NOT_VERIFIED"
     allowed, code = live_start_allowed({"verification_status": "VERIFIED", "withdrawal_permission_verified": False}, True, True, True, True)
     assert allowed and code == "ALLOWED"
-
-
-def test_source_dedup_order_intent_and_reconciliation_persist(connection):
-    tenant = TenantRepository(connection).create("Execution tenant")
-    bot = BotInstanceRepository(connection).create(tenant["id"], "Execution bot")
-    source_events = SourceTradeEventRepository(connection)
-    assert source_events.record_once(tenant["id"], "leader", "source-1", {"symbol": "BTC-USDT"})
-    assert not source_events.record_once(tenant["id"], "leader", "source-1", {"symbol": "BTC-USDT"})
-
-    intents = OrderIntentRepository(connection)
-    intent = intents.create(
-        tenant_id=tenant["id"],
-        bot_id=bot["id"],
-        account_id="account",
-        environment="DEMO",
-        product="USDT_M_PERPETUAL",
-        strategy="COPY",
-        source_event_id="source-1",
-        client_order_id="deterministic-client-id",
-        symbol="BTC-USDT",
-        requested={"quantity": "0.001"},
-    )
-    assert OrderIntentRepository(connection).get(tenant["id"], intent["id"])["state"] == "PERSISTED"
-    assert len(intents.unfinished(tenant["id"], "account")) == 1
-
-    runs = ReconciliationRunRepository(connection)
-    run = runs.start(tenant["id"], "account")
-    completed = runs.complete(tenant["id"], run["id"], [{"category": "UNKNOWN_POSITION"}])
-    assert completed["status"] == "MANUAL_REVIEW"

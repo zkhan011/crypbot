@@ -7,7 +7,7 @@ from enum import StrEnum
 from typing import Protocol
 from uuid import uuid4
 
-from app.domain.trading_types import OrderStatus, OrderType, Side
+from app.domain.types import OrderStatus, OrderType, Side
 
 
 class Mode(StrEnum):

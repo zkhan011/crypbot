@@ -1,5 +1,5 @@
 from decimal import Decimal
-from app.domain.trading_types import OrderStatus, OrderType
+from app.domain.types import OrderStatus, OrderType
 from app.exchanges.interfaces import Balance, Candle, OrderBook, OrderBookLevel, OrderRequest, OrderResult, Position, SymbolMetadata
 
 
@@ -69,6 +69,6 @@ class FakeExchangeClient:
     async def get_order_by_client_id(self, account_id: str, client_order_id: str) -> OrderResult | None:
         return self.orders.get((account_id, client_order_id))
 
-    async def cancel_order(self, account_id: str, client_order_id: str, symbol: str | None = None) -> OrderResult:
+    async def cancel_order(self, account_id: str, client_order_id: str) -> OrderResult:
         existing = self.orders[(account_id, client_order_id)]
         return existing.model_copy(update={"status": OrderStatus.CANCELLED})
