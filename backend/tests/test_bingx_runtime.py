@@ -27,9 +27,13 @@ def test_sopt_account_type_preserves_raw_and_uses_decimal() -> None:
     ("payload", "expected_raw", "expected_type"),
     [
         ({"usdtBalance": "1.2"}, None, AccountType.MISSING),
+        ({"accountType": None, "usdtBalance": "1.2"}, None, AccountType.MISSING),
         ({"accountType": "", "usdtBalance": "1.2"}, "", AccountType.MISSING),
         ({"accountType": "future-product", "usdtBalance": "1.2"}, "future-product", AccountType.UNKNOWN),
-        ({"accountType": "spot", "usdtBalance": "1.2"}, "spot", AccountType.UNKNOWN),
+        ({"accountType": "spot", "usdtBalance": "1.2"}, "spot", AccountType.SPOT),
+        ({"accountType": "swap", "usdtBalance": "1.2"}, "swap", AccountType.SWAP),
+        ({"accountType": "perpetual", "usdtBalance": "1.2"}, "perpetual", AccountType.SWAP),
+        ({"accountType": "fund", "usdtBalance": "1.2"}, "fund", AccountType.FUND),
     ],
 )
 def test_account_type_unknown_and_missing_are_safe(payload, expected_raw, expected_type) -> None:

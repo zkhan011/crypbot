@@ -21,4 +21,4 @@ The mock engine simulates BingX balance, prices, candles, order book, volume spi
 
 ## Non-trading BingX demo-readiness report
 
-Run `python scripts/validate_bingx_registry.py`, then `python scripts/bingx_demo_certify.py`. The second command creates `artifacts/bingx-demo-certification.json`, contains no credentials, and performs no network mutation. While server-time and demo endpoint contracts remain `BLOCKED_SPEC`, the report intentionally says `certified: false`. Passing `--allow-demo-order` also fails closed until an official demo test-order contract and demo base URL are verified.
+Run `python scripts/validate_bingx_registry.py`, then `python scripts/bingx_demo_certify.py`. The second command creates `artifacts/bingx-demo-certification.json`, contains no credentials, and performs no network mutation. REST and test-order contracts are implemented from the supplied endpoint definitions, but the report intentionally says `certified: false` until a separate BingX demo URL and credentials are configured and reviewed. Passing `--allow-demo-order` continues to fail closed in this release.

@@ -10,8 +10,32 @@ class Side(StrEnum):
 class OrderType(StrEnum):
     MARKET = "MARKET"
     LIMIT = "LIMIT"
+    STOP = "STOP"
     STOP_LOSS = "STOP_LOSS"
     TAKE_PROFIT = "TAKE_PROFIT"
+    STOP_MARKET = "STOP_MARKET"
+    TAKE_PROFIT_MARKET = "TAKE_PROFIT_MARKET"
+    TRIGGER_LIMIT = "TRIGGER_LIMIT"
+    TRIGGER_MARKET = "TRIGGER_MARKET"
+    TRAILING_STOP_MARKET = "TRAILING_STOP_MARKET"
+
+
+class PositionSide(StrEnum):
+    LONG = "LONG"
+    SHORT = "SHORT"
+    BOTH = "BOTH"
+
+
+class TimeInForce(StrEnum):
+    GTC = "GTC"
+    IOC = "IOC"
+    FOK = "FOK"
+    POST_ONLY = "POST_ONLY"
+
+
+class MarginType(StrEnum):
+    ISOLATED = "ISOLATED"
+    CROSSED = "CROSSED"
 
 
 class OrderStatus(StrEnum):

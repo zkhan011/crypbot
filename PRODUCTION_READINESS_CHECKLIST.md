@@ -8,7 +8,7 @@
 | Tenant isolation | Partial | Tenant-scoped bot/settings/credential repositories exist; apply migrations and enforce tenant context across every protected API with PostgreSQL integration tests. |
 | Settings persistence | Schema foundation | Add versioned settings CRUD and wire strategy reloads to persisted records. |
 | Credential security | Partial | Tenant-scoped encrypted credential repository and live-gate evaluator exist; use a managed KMS and add verified BingX lifecycle UI/API. |
-| BingX adapter | Gated partial REST | Machine registry, account alias parser, Decimal preflight, secret runtime provider, time-offset/rate-limit/circuit primitives exist. Complete official contracts, DEMO certification, reconciliation, endpoint limits, and WebSocket recovery tests. |
+| BingX adapter | Gated controlled-demo candidate | 47 prompt-supplied endpoint contracts are registered; market/account/order parsers, time sync, typed errors, token buckets, circuit breaker, configurable WebSocket transport, persistence migration, and startup reconciliation exist. Controlled DEMO certification and private subscription payload review remain required. |
 | Live trading gates | Partial | Require verified credentials, approved+mock-tested strategy, risk profile, final confirmation, and durable audit event. |
 | AI safety | Partial | Draft-only mock flow exists; add durable storage, validation runs, provider controls, and request limits. |
 | Audit integrity | Partial | Hash-chain primitive/schema exists; persist append-only entries and verify externally during operations. |
@@ -34,7 +34,9 @@ LIVE trading is still blocked unless the encrypted credential UI/API workflow, B
 - [x] Non-trading certification report is repeatable and sanitized.
 - [x] Unknown endpoint limits block opening capacity rather than using invented limits.
 - [x] Unknown demo URL is not allowlisted.
-- [ ] Verify official server-time and demo base URL specifications.
-- [ ] Verify every bot-used endpoint schema, error code, and rate limit.
+- [x] Implement prompt-supplied server-time, market, account, position-control, and order endpoint contracts.
+- [x] Implement typed prompt-supplied error-code mappings with unknown fallback.
+- [ ] Configure and review a separate BingX demo base URL and credentials.
+- [ ] Validate prompt-supplied parsers with sanitized BingX DEMO responses.
 - [ ] Add read-only connection/authentication certification with sanitized fixtures.
 - [ ] Add official test-order certification; no demo mutation before explicit review.

@@ -2,7 +2,7 @@
 
 Crypbot is a modular-monolith cryptocurrency copy-trading and compliant automated execution platform. The initial runnable release defaults to the deterministic fake exchange in `MOCK` mode; BingX perpetual futures support is isolated behind exchange interfaces for future certified live integration.
 
-> Safety warning: this repository is not production-ready for real funds. The bot-required BingX REST operations have contract-tested adapter implementations, but the runtime credential workflow and certified end-to-end LIVE composition remain incomplete. Before LIVE use it requires security review, legal/regulatory review, exchange certification, penetration testing, load testing, disaster-recovery drills, and controlled live trials.
+> Safety warning: this repository is not production-ready for real funds. Forty-seven prompt-supplied BingX endpoint contracts, fail-closed transport controls, durable execution records, and configurable WebSocket recovery are implemented for controlled DEMO preparation, but no exchange request or order was sent. LIVE remains disabled pending demo certification, private-stream payload review, security/legal review, penetration testing, load testing, disaster-recovery drills, and controlled trials.
 
 ## Architecture summary
 

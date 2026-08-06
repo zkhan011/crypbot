@@ -21,13 +21,13 @@ def build_report() -> dict[str, object]:
         "live_trading_enabled": False,
         "registry_valid": not registry_errors,
         "registry_errors": registry_errors,
-        "server_time": "BLOCKED_SPEC",
+        "server_time": "IMPLEMENTED_NOT_CONTACTED",
         "authentication": "NOT_RUN",
         "balance": "NOT_RUN",
         "contracts": "NOT_RUN",
         "market_data": "NOT_RUN",
         "order_validation": "LOCAL_TEST_ONLY",
-        "test_order": "BLOCKED_SPEC",
+        "test_order": "IMPLEMENTED_BUT_DISABLED",
         "demo_order": "NOT_RUN",
         "final_reconciliation": "NOT_RUN",
         "live_order_placed": False,
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser.add_argument("--allow-demo-order", action="store_true")
     args = parser.parse_args()
     if args.allow_demo_order:
-        raise SystemExit("Demo order is BLOCKED_SPEC; no exchange mutation was attempted.")
+        raise SystemExit("Demo mutation is disabled until a separate demo URL and explicit certification approval are configured.")
     report = build_report()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2) + "\n")

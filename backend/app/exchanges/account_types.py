@@ -11,6 +11,8 @@ import re
 
 class AccountType(StrEnum):
     SPOT = "spot"
+    SWAP = "swap"
+    FUND = "fund"
     UNKNOWN = "unknown"
     MISSING = "missing"
 
@@ -26,14 +28,21 @@ class AccountTypeParseError(ValueError):
     pass
 
 
+ACCOUNT_TYPE_ALIASES: dict[str, AccountType] = {
+    "sopt": AccountType.SPOT,
+    "spot": AccountType.SPOT,
+    "swap": AccountType.SWAP,
+    "perpetual": AccountType.SWAP,
+    "fund": AccountType.FUND,
+}
+
+
 def parse_account_balance(item: Any, unknown_observer: Callable[[str], None] | None = None) -> AccountBalanceView:
     if not isinstance(item, dict):
         raise AccountTypeParseError("account balance item must be an object")
     raw_value = item.get("accountType")
     raw = str(raw_value) if raw_value is not None else None
-    # `sopt` is the only alias proven by a response fixture supplied for this
-    # repository. Additional exchange values stay UNKNOWN until documented.
-    normalized = AccountType.SPOT if raw is not None and raw.lower() == "sopt" else AccountType.UNKNOWN
+    normalized = ACCOUNT_TYPE_ALIASES.get(raw.lower(), AccountType.UNKNOWN) if raw is not None else AccountType.MISSING
     if raw is None or not raw.strip():
         normalized = AccountType.MISSING
     elif normalized == AccountType.UNKNOWN and unknown_observer is not None:

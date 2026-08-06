@@ -184,3 +184,20 @@
 - Ruff formatting/linting, byte compilation, secret scan, endpoint-registry validation, demo-readiness report generation, Alembic head inspection, and Git whitespace checks passed.
 - Renamed the domain financial-types module to `trading_types.py`, enabled explicit package bases, and fixed strict typing findings in credential decoding, market-cache updates, and HTTP query parameters; `mypy app` now passes.
 - Container build was not run because Docker is unavailable in the execution environment.
+
+## 2026-08-06 prompt-defined BingX completion increment
+
+- Replaced prior specification blockers with 47 locally supplied endpoint contracts covering server time, market data, accounts, positions, position controls, order lifecycle, emergency controls, and optional copy paths.
+- Added corrected-time signed retries, typed numeric error mappings, configurable token buckets, `Retry-After`, circuit protection, connection pooling, exact Decimal parsers, expanded positions/fills, and applicable-field order construction.
+- Added configurable WebSocket transport with gzip/deflate decoding, deduplication, resubscription, heartbeat hooks, stale detection, bounded reconnect, and REST recovery. Unspecified private auth/subscription payloads remain disabled.
+- Added fill-authoritative volume/fee accounting, controlled-account self-trade prevention, cancellation-ratio protection, six copy-sizing modes, and source-event deduplication.
+- Added migration `0004_bingx_execution_records` and tenant-scoped repositories for durable source events, order intents, reconciliation runs, fills/orders/positions/allocations/volume sessions.
+- No BingX network request and no order was placed; both exact and platform LIVE flags remain false by default.
+
+### Validation
+
+- Backend: 80 tests passed; Ruff formatting/lint and strict MyPy passed for 24 source files.
+- Frontend: 3 tests passed and the Vite production build completed.
+- Endpoint registry/coverage generation, configuration validation, secret scan, non-trading demo report, and Git whitespace checks passed.
+- Alembic head is `0004_bingx_execution_records`; offline PostgreSQL SQL generation produced all migrations including order intents, fills, and reconciliation runs.
+- Docker Compose build remains unexecuted because Docker is unavailable in the environment.

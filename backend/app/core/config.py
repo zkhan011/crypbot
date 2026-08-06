@@ -23,9 +23,11 @@ class Settings(BaseSettings):
     bingx_timeout_seconds: int = 10
     bingx_max_retries: int = 2
     bingx_recv_window_ms: int = 5_000
-    bingx_rule_cache_ttl_seconds: int = 300
+    bingx_rule_cache_ttl_seconds: int = 900
     bingx_websocket_stale_seconds: int = 15
     bingx_reconciliation_interval_seconds: int = 30
+    bingx_public_websocket_url: str = "wss://open-api-swap.bingx.com/swap-market"
+    bingx_private_websocket_url: str = "wss://open-api-swap.bingx.com/swap-market"
 
     def validate_startup_security(self) -> None:
         if self.environment in {"production", "staging"}:

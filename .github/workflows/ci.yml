@@ -12,6 +12,7 @@ jobs:
       - run: cd backend && ruff check .
       - run: python scripts/check_no_secrets.py
       - run: python scripts/validate_bingx_registry.py
+      - run: python scripts/validate_bingx_config.py
       - run: python scripts/bingx_demo_certify.py --output /tmp/bingx-demo-certification.json
       - run: cd backend && mypy app
       - run: cd backend && pytest

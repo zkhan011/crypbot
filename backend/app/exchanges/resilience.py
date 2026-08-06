@@ -13,9 +13,12 @@ from enum import StrEnum
 class RateLimitScope(StrEnum):
     MARKET_DATA = "market_data"
     ACCOUNT = "account"
-    ORDER = "order"
-    CANCELLATION = "cancellation"
+    ORDER_CREATE = "order_create"
+    ORDER_CANCEL = "order_cancel"
+    POSITION_CONTROL = "position_control"
     COPY_TRADING = "copy_trading"
+    ORDER = "order_create"  # compatibility alias
+    CANCELLATION = "order_cancel"  # compatibility alias
 
 
 class UnverifiedRateLimitError(RuntimeError):
@@ -33,31 +36,45 @@ class RateLimit:
 
 
 class EndpointRateLimiter:
-    """Process-local fixed-window limiter; unknown scopes fail closed for openings."""
+    """Process-local token buckets; unknown scopes fail closed for openings."""
 
     def __init__(self, limits: dict[RateLimitScope, RateLimit] | None = None) -> None:
         self._limits = limits or {}
-        self._windows: dict[RateLimitScope, tuple[Decimal, int]] = {}
+        self._buckets: dict[RateLimitScope, tuple[Decimal, Decimal]] = {}
+        self._throttled: dict[RateLimitScope, int] = {}
         self._lock = asyncio.Lock()
 
     @staticmethod
     def _now() -> Decimal:
         return Decimal(str(time.monotonic()))
 
-    async def acquire(self, scope: RateLimitScope, *, risk_reducing: bool = False) -> None:
+    async def acquire(self, scope: RateLimitScope, *, risk_reducing: bool = False, timeout_seconds: Decimal = Decimal("0")) -> None:
         limit = self._limits.get(scope)
         if limit is None:
-            if risk_reducing and scope == RateLimitScope.CANCELLATION:
+            if risk_reducing and scope in {RateLimitScope.ORDER_CANCEL, RateLimitScope.POSITION_CONTROL}:
                 return
             raise UnverifiedRateLimitError(f"{scope.value} rate limit is unverified; opening operation disabled")
-        async with self._lock:
-            now = self._now()
-            started, count = self._windows.get(scope, (now, 0))
-            if now - started >= limit.period_seconds:
-                started, count = now, 0
-            if count >= limit.requests:
+        deadline = self._now() + timeout_seconds
+        while True:
+            async with self._lock:
+                now = self._now()
+                last, tokens = self._buckets.get(scope, (now, Decimal(limit.requests)))
+                refill = (now - last) / limit.period_seconds * Decimal(limit.requests)
+                tokens = min(Decimal(limit.requests), tokens + refill)
+                if tokens >= 1:
+                    self._buckets[scope] = (now, tokens - 1)
+                    return
+                self._buckets[scope] = (now, tokens)
+                self._throttled[scope] = self._throttled.get(scope, 0) + 1
+            if self._now() >= deadline:
                 raise UnverifiedRateLimitError(f"{scope.value} process-local capacity exhausted")
-            self._windows[scope] = (started, count + 1)
+            await asyncio.sleep(0.01)
+
+    async def metrics(self, scope: RateLimitScope) -> dict[str, Decimal | int]:
+        async with self._lock:
+            limit = self._limits.get(scope)
+            remaining = self._buckets.get(scope, (Decimal("0"), Decimal(limit.requests) if limit else Decimal("0")))[1]
+            return {"remaining": remaining, "throttled": self._throttled.get(scope, 0)}
 
 
 class BingXTimeSynchronizer:

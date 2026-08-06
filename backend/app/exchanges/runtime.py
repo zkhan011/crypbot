@@ -60,6 +60,22 @@ class BingXCredentialProvider:
             raise RuntimeError("BINGX_RECV_WINDOW must be positive")
         return value
 
+    def boolean(self, name: str, *, default: bool) -> bool:
+        raw = self._environ.get(name, str(default)).lower()
+        if raw not in {"true", "false", "1", "0"}:
+            raise RuntimeError(f"{name} must be true or false")
+        return raw in {"true", "1"}
+
+    def integer(self, name: str, *, default: int, minimum: int = 1) -> int:
+        raw = self._environ.get(name, str(default))
+        try:
+            value = int(raw)
+        except ValueError as exc:
+            raise RuntimeError(f"{name} must be an integer") from exc
+        if value < minimum:
+            raise RuntimeError(f"{name} must be at least {minimum}")
+        return value
+
 
 @dataclass(frozen=True)
 class BingXEnvironmentGuard:

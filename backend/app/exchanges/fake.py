@@ -69,6 +69,6 @@ class FakeExchangeClient:
     async def get_order_by_client_id(self, account_id: str, client_order_id: str) -> OrderResult | None:
         return self.orders.get((account_id, client_order_id))
 
-    async def cancel_order(self, account_id: str, client_order_id: str) -> OrderResult:
+    async def cancel_order(self, account_id: str, client_order_id: str, symbol: str | None = None) -> OrderResult:
         existing = self.orders[(account_id, client_order_id)]
         return existing.model_copy(update={"status": OrderStatus.CANCELLED})

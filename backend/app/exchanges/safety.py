@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from decimal import Decimal, ROUND_CEILING, ROUND_DOWN
 
@@ -53,6 +54,8 @@ class OrderValidationService:
     ) -> tuple[OrderRequest, OrderValidationResult]:
         if request.symbol != rules.symbol:
             raise OrderValidationError("SYMBOL_MISMATCH", "order symbol does not match loaded trading rules")
+        if not rules.active:
+            raise OrderValidationError("SYMBOL_NOT_TRADABLE", "exchange contract is not tradable")
         if request.quantity <= 0:
             raise OrderValidationError("INVALID_QUANTITY", "order quantity must be positive")
         if rules.quantity_step <= 0 or rules.tick_size <= 0:
@@ -61,6 +64,8 @@ class OrderValidationService:
         quantity = self._quantity_down(request.quantity, rules.quantity_step)
         if quantity < rules.min_quantity:
             raise OrderValidationError("MIN_QUANTITY", "normalized quantity is below the exchange minimum")
+        if rules.max_quantity is not None and quantity > rules.max_quantity:
+            raise OrderValidationError("MAX_QUANTITY", "normalized quantity exceeds the exchange maximum")
 
         price = request.price
         if price is not None:
@@ -162,3 +167,29 @@ class MarketDataCache:
             if self._now() - snapshot.observed_monotonic > self.stale_after_seconds:
                 raise StaleMarketDataError("required market data is stale")
             return snapshot
+
+
+class TradingRulesCache:
+    def __init__(self, ttl_seconds: Decimal = Decimal("900")) -> None:
+        if ttl_seconds <= 0:
+            raise ValueError("trading-rule cache TTL must be positive")
+        self.ttl_seconds = ttl_seconds
+        self._values: dict[str, tuple[Decimal, SymbolMetadata]] = {}
+        self._locks: dict[str, asyncio.Lock] = {}
+
+    @staticmethod
+    def _now() -> Decimal:
+        return Decimal(str(time.monotonic()))
+
+    async def get(self, symbol: str, loader: Callable[[str], Awaitable[SymbolMetadata]], *, force: bool = False) -> SymbolMetadata:
+        lock = self._locks.setdefault(symbol, asyncio.Lock())
+        async with lock:
+            cached = self._values.get(symbol)
+            if not force and cached is not None and self._now() - cached[0] < self.ttl_seconds:
+                return cached[1]
+            value = await loader(symbol)
+            self._values[symbol] = (self._now(), value)
+            return value
+
+    def invalidate(self, symbol: str) -> None:
+        self._values.pop(symbol, None)

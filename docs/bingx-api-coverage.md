@@ -1,104 +1,76 @@
-# BingX API coverage and verification ledger
+# BingX API coverage ledger
 
-Last reviewed: 2026-08-06
+Registry schema: `2`<br>
+Contract source: `user-provided BingX endpoint contract in task prompt`<br>
+Recorded: `2026-08-06`
 
-Official documentation requested for review: <https://bingx-api.github.io/docs-v3/#/en>
+This document is generated from `config/bingx-endpoints.yaml`. Run `python scripts/validate_bingx_registry.py --write` after registry changes. Rate-limit values are configurable application safety caps because the supplied contract does not provide exchange numeric limits. LIVE remains disabled.
 
-## Verification limitation
+## Totals
 
-The official documentation site, its GitHub raw-content host, and the GitHub API were all inaccessible from the build environment: each HTTPS request was rejected by the network proxy with HTTP 403, while the configured web-retrieval tool returned HTTP 401. Consequently, this file **does not claim to inventory every current BingX endpoint**. Doing so from memory would violate the requirement not to guess paths, parameters, enums, response fields, or rate limits.
+Total contracts: **47**. `DISABLED_SCHEMA`: **6**, `IMPLEMENTED`: **27**, `IMPLEMENTED_CONFIRMATION_GATED`: **1**, `IMPLEMENTED_DEMO_ONLY`: **1**, `IMPLEMENTED_GATED`: **6**, `IMPLEMENTED_REDUCTION_GATED`: **5**, `INTERNAL_ONLY`: **1**.
 
-The table below is limited to endpoint contracts already present in this repository. Every row is marked **REQUIRES OFFICIAL VERIFICATION** until it is checked line-by-line against an accessible current documentation snapshot and exercised against a BingX-controlled demo account. Rate limits are deliberately recorded as `UNVERIFIED` rather than invented.
+## Endpoint matrix
 
-`config/bingx-endpoints.yaml` is the machine-readable source of endpoint status. It is JSON-compatible YAML so `scripts/validate_bingx_registry.py` can validate it using only the Python standard library. All nine current contracts are `BLOCKED_SPEC`; none is represented as officially verified.
+| Product | Module | Operation | Method | Path | Auth | Required | Optional | Rate scope/value | Status | Tests |
+|---|---|---|---:|---|---|---|---|---|---|---|
+| USDT_M_PERPETUAL | market_data | `server_time` | GET | `/openApi/swap/v2/server/time` | PUBLIC | — | — | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | market_data | `contracts` | GET | `/openApi/swap/v2/quote/contracts` | PUBLIC | — | `symbol` | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | market_data | `trading_rules` | GET | `/openApi/swap/v1/tradingRules` | SIGNED | `symbol`, `timestamp` | `recvWindow` | market_data / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | market_data | `latest_price` | GET | `/openApi/swap/v2/quote/price` | PUBLIC | `timestamp` | `symbol` | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | market_data | `depth` | GET | `/openApi/swap/v2/quote/depth` | PUBLIC | `symbol`, `timestamp` | `limit` | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | market_data | `recent_trades` | GET | `/openApi/swap/v2/quote/trades` | PUBLIC | `symbol`, `timestamp` | `limit` | market_data / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | market_data | `historical_trades` | GET | `/openApi/swap/v1/market/historicalTrades` | PUBLIC | `symbol`, `timestamp` | `limit`, `fromId` | market_data / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | market_data | `klines` | GET | `/openApi/swap/v3/quote/klines` | PUBLIC | `symbol`, `interval`, `timestamp` | `startTime`, `endTime`, `limit` | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | market_data | `mark_price_klines` | GET | `/openApi/swap/v1/market/markPriceKlines` | PUBLIC | `symbol`, `interval`, `timestamp` | `startTime`, `endTime`, `limit` | market_data / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | market_data | `premium_index` | GET | `/openApi/swap/v2/quote/premiumIndex` | PUBLIC | `timestamp` | `symbol` | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | market_data | `funding_rate_history` | GET | `/openApi/swap/v2/quote/fundingRate` | PUBLIC | `timestamp` | `symbol`, `startTime`, `endTime`, `limit` | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | market_data | `open_interest` | GET | `/openApi/swap/v2/quote/openInterest` | PUBLIC | `symbol`, `timestamp` | — | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | market_data | `ticker_24h` | GET | `/openApi/swap/v2/quote/ticker` | PUBLIC | `timestamp` | `symbol` | market_data / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | market_data | `ticker_price` | GET | `/openApi/swap/v1/ticker/price` | PUBLIC | `timestamp` | `symbol` | market_data / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | market_data | `book_ticker` | GET | `/openApi/swap/v2/quote/bookTicker` | PUBLIC | `symbol`, `timestamp` | — | market_data / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | account | `balance` | GET | `/openApi/swap/v2/user/balance` | SIGNED | `timestamp` | `recvWindow` | account / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | position | `positions` | GET | `/openApi/swap/v2/user/positions` | SIGNED | `timestamp` | `symbol`, `recvWindow` | position / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | account | `income` | GET | `/openApi/swap/v2/user/income` | SIGNED | `timestamp` | `symbol`, `incomeType`, `startTime`, `endTime`, `limit`, `recvWindow` | account / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | account | `income_export` | GET | `/openApi/swap/v2/user/income/export` | SIGNED | `timestamp` | `recvWindow` | account / configurable_application_limit | INTERNAL_ONLY | UNIT_PENDING |
+| USDT_M_PERPETUAL | account | `commission_rate` | GET | `/openApi/swap/v2/user/commissionRate` | SIGNED | `symbol`, `timestamp` | `recvWindow` | account / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | position_control | `get_position_mode` | GET | `/openApi/swap/v1/positionSide/dual` | SIGNED | `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | position_control | `set_position_mode` | POST | `/openApi/swap/v1/positionSide/dual` | SIGNED_TRADE | `dualSidePosition`, `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | position_control | `get_margin_type` | GET | `/openApi/swap/v2/trade/marginType` | SIGNED | `symbol`, `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | position_control | `set_margin_type` | POST | `/openApi/swap/v2/trade/marginType` | SIGNED_TRADE | `symbol`, `marginType`, `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | position_control | `get_leverage` | GET | `/openApi/swap/v2/trade/leverage` | SIGNED | `symbol`, `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | position_control | `set_leverage` | POST | `/openApi/swap/v2/trade/leverage` | SIGNED_TRADE | `symbol`, `side`, `leverage`, `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | order | `test_order` | POST | `/openApi/swap/v2/trade/order/test` | SIGNED_TRADE | `symbol`, `side`, `positionSide`, `type`, `timestamp` | `quantity`, `price`, `stopPrice`, `timeInForce`, `reduceOnly`, `clientOrderID`, `workingType`, `priceProtect`, `closePosition`, `takeProfit`, `stopLoss`, `recvWindow` | order / configurable_application_limit | IMPLEMENTED_DEMO_ONLY | MOCK_TEST_ENDPOINT |
+| USDT_M_PERPETUAL | order | `place_order` | POST | `/openApi/swap/v2/trade/order` | SIGNED_TRADE | `symbol`, `side`, `positionSide`, `type`, `timestamp` | `quantity`, `price`, `stopPrice`, `timeInForce`, `reduceOnly`, `clientOrderID`, `workingType`, `priceProtect`, `closePosition`, `takeProfit`, `stopLoss`, `recvWindow` | order / configurable_application_limit | IMPLEMENTED_GATED | MOCK_TRANSPORT_NO_LIVE |
+| USDT_M_PERPETUAL | order | `query_order` | GET | `/openApi/swap/v2/trade/order` | SIGNED | `timestamp` | `symbol`, `orderId`, `clientOrderID`, `recvWindow` | order / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | cancellation | `cancel_order` | DELETE | `/openApi/swap/v2/trade/order` | SIGNED_TRADE | `symbol`, `timestamp` | `orderId`, `clientOrderID`, `recvWindow` | cancellation / configurable_application_limit | IMPLEMENTED_REDUCTION_GATED | UNIT |
+| USDT_M_PERPETUAL | order | `batch_place` | POST | `/openApi/swap/v2/trade/batchOrders` | SIGNED_TRADE | `batchOrders`, `timestamp` | `recvWindow` | order / configurable_application_limit | IMPLEMENTED_GATED | UNIT |
+| USDT_M_PERPETUAL | cancellation | `batch_cancel` | DELETE | `/openApi/swap/v2/trade/batchOrders` | SIGNED_TRADE | `symbol`, `timestamp` | `orderIdList`, `clientOrderIdList`, `recvWindow` | cancellation / configurable_application_limit | IMPLEMENTED_REDUCTION_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | order | `open_orders` | GET | `/openApi/swap/v2/trade/openOrders` | SIGNED | `timestamp` | `symbol`, `recvWindow` | order / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | order | `order_history` | GET | `/openApi/swap/v2/trade/allOrders` | SIGNED | `timestamp` | `symbol`, `orderId`, `startTime`, `endTime`, `limit`, `recvWindow` | order / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | order | `fills` | GET | `/openApi/swap/v2/trade/allFillOrders` | SIGNED | `timestamp` | `symbol`, `orderId`, `startTime`, `endTime`, `limit`, `recvWindow` | order / configurable_application_limit | IMPLEMENTED | UNIT |
+| USDT_M_PERPETUAL | cancellation | `cancel_all` | DELETE | `/openApi/swap/v2/trade/allOpenOrders` | SIGNED_TRADE | `timestamp` | `symbol`, `recvWindow` | cancellation / configurable_application_limit | IMPLEMENTED_REDUCTION_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | position_control | `close_all_positions` | POST | `/openApi/swap/v2/trade/closeAllPositions` | SIGNED_TRADE | `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED_CONFIRMATION_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | position_control | `close_position` | POST | `/openApi/swap/v1/trade/closePosition` | SIGNED_TRADE | `positionId`, `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED_REDUCTION_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | order | `cancel_replace` | POST | `/openApi/swap/v1/trade/cancelReplace` | SIGNED_TRADE | `timestamp` | `schema_not_supplied` | order / configurable_application_limit | DISABLED_SCHEMA | NONE |
+| USDT_M_PERPETUAL | order | `batch_cancel_replace` | POST | `/openApi/swap/v1/trade/batchCancelReplace` | SIGNED_TRADE | `timestamp` | `schema_not_supplied` | order / configurable_application_limit | DISABLED_SCHEMA | NONE |
+| USDT_M_PERPETUAL | cancellation | `cancel_all_after` | POST | `/openApi/swap/v2/trade/cancelAllAfter` | SIGNED_TRADE | `countdownTime`, `timestamp` | `recvWindow` | cancellation / configurable_application_limit | IMPLEMENTED_REDUCTION_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | position_control | `position_margin` | POST | `/openApi/swap/v2/trade/positionMargin` | SIGNED_TRADE | `symbol`, `positionSide`, `amount`, `type`, `timestamp` | `recvWindow` | position_control / configurable_application_limit | IMPLEMENTED_GATED | UNIT_PENDING |
+| USDT_M_PERPETUAL | account | `force_orders` | GET | `/openApi/swap/v2/trade/forceOrders` | SIGNED | `timestamp` | `symbol`, `recvWindow` | account / configurable_application_limit | IMPLEMENTED | UNIT_PENDING |
+| USDT_M_PERPETUAL | copy_trading | `copy_current_track` | GET | `/openApi/copyTrading/v1/swap/trace/currentTrack` | SIGNED | `timestamp` | `schema_not_supplied` | copy_trading / configurable_application_limit | DISABLED_SCHEMA | ERROR_TEST |
+| USDT_M_PERPETUAL | copy_trading | `copy_close_track` | POST | `/openApi/copyTrading/v1/swap/trace/closeTrackOrder` | SIGNED_TRADE | `timestamp` | `schema_not_supplied` | copy_trading / configurable_application_limit | DISABLED_SCHEMA | ERROR_TEST |
+| USDT_M_PERPETUAL | copy_trading | `copy_set_tpsl` | POST | `/openApi/copyTrading/v1/swap/trace/setTPSL` | SIGNED_TRADE | `timestamp` | `schema_not_supplied` | copy_trading / configurable_application_limit | DISABLED_SCHEMA | ERROR_TEST |
+| SPOT | spot_copy_trading | `spot_copy_sell` | POST | `/openApi/copyTrading/v1/spot/trader/sellOrder` | SIGNED_TRADE | `timestamp` | `schema_not_supplied` | spot_copy_trading / configurable_application_limit | DISABLED_SCHEMA | ERROR_TEST |
 
-## Implemented repository contracts requiring official verification
+## Deliberately disabled operations
 
-| Product/module | Method | Path | Authentication | Required parameters used | Optional parameters used | Documented rate limit | Implementation status | Bot usage | Test status |
-|---|---:|---|---|---|---|---|---|---|---|
-| Perpetual futures market data | GET | `/openApi/swap/v2/quote/contracts` | Public | None | None | UNVERIFIED | Implemented; requires official verification | Symbol rules and precision preflight | Mock transport contract |
-| Perpetual futures market data | GET | `/openApi/swap/v2/quote/price` | Public | `symbol` | None | UNVERIFIED | Implemented; requires official verification | Latest/reference price | Mock transport contract |
-| Perpetual futures market data | GET | `/openApi/swap/v3/quote/klines` | Public | `symbol`, `interval` | `limit` | UNVERIFIED | Implemented; requires official verification | Volume-momentum candles | Mock transport contract |
-| Perpetual futures market data | GET | `/openApi/swap/v2/quote/depth` | Public | `symbol` | `limit` | UNVERIFIED | Implemented; requires official verification | Spread and liquidity snapshot | Mock transport contract |
-| Perpetual futures account | GET | `/openApi/swap/v3/user/balance` | Signed API key | `timestamp`, `signature` | `recvWindow` | UNVERIFIED | Implemented; requires official verification | Balance and available-margin checks | Mock transport contract |
-| Perpetual futures positions | GET | `/openApi/swap/v2/user/positions` | Signed API key | `timestamp`, `signature` | `recvWindow` | UNVERIFIED | Implemented; requires official verification | Position and reconciliation snapshot | Parser present; dedicated fixture pending |
-| Perpetual futures orders | POST | `/openApi/swap/v2/trade/order` | Signed trading key and all platform LIVE gates | `symbol`, `side`, `type`, `quantity`, `clientOrderID`, `timestamp`, `signature` | `price`, `stopPrice`, `reduceOnly`, `recvWindow` | UNVERIFIED | Implemented but LIVE-disconnected and uncertified | Market, limit, stop-market, take-profit-market submission | Mock transport contract only; never live |
-| Perpetual futures orders | GET | `/openApi/swap/v2/trade/order` | Signed API key | `clientOrderID`, `timestamp`, `signature` | `recvWindow` | UNVERIFIED | Implemented; requires official verification | Ambiguous-timeout lookup and reconciliation | Parser test pending |
-| Perpetual futures orders | DELETE | `/openApi/swap/v2/trade/order` | Signed trading key and all platform LIVE gates | `clientOrderID`, `timestamp`, `signature` | `recvWindow` | UNVERIFIED | Implemented; requires official verification | Cancel one bot-owned order | Contract test pending |
+Cancel/replace and optional official copy-trading operations remain `DISABLED_SCHEMA` because the supplied contract gives endpoint paths but not complete request/response fields. Their methods fail closed rather than inventing fields. Withdrawals are prohibited and are not present in the registry or code.
 
-## Requested modules not inventoried or implemented
+## Remaining controlled-demo gates
 
-These areas must remain unavailable until the official documentation can be accessed and exact contracts are added to this ledger. `NO` is intentional and safer than speculative integration.
-
-| Requested module | Inventory complete | Implemented | Reason/status |
-|---|---:|---:|---|
-| USDT-M perpetual endpoints beyond the table above | NO | NO | Complete current documentation unavailable; exact contracts and limits must be verified. |
-| Coin-M perpetual futures | NO | NO | Account/product support and current endpoint contracts are unverified. |
-| Spot trading and spot copy trading | NO | NO | Product-specific interfaces and current endpoint contracts are unverified. |
-| Perpetual copy-trading account endpoints | NO | NO | Permission model and endpoint contracts are unverified; existing copy engine uses external/mock signals. |
-| Fund/account transfers | NO | NO | Not required by current strategy runtime; no endpoint will be added without a documented business need and review. |
-| Subaccounts | NO | NO | Current bot does not use subaccounts. |
-| Public WebSocket streams | NO | NO | Subscription URL, payloads, compression, heartbeat, and sequence contracts require official verification. |
-| Private WebSocket streams | NO | NO | Authentication/listen-key lifecycle and event schemas require official verification. |
-| Withdrawals | N/A | **PROHIBITED** | Withdrawal functionality is intentionally excluded and must never be requested by this platform. |
-
-## Implemented non-endpoint safety controls
-
-- Canonical sorted query construction, HMAC-SHA256 signing, millisecond timestamps, API-key header, and receive window.
-- HTTPS-only base URL and no secret-bearing logs or exception messages.
-- HTTP status plus BingX response-envelope validation.
-- Typed authentication, permission, rate-limit, malformed-response, network, and LIVE-gate failures.
-- Bounded retries for safe reads; order mutations are never blindly retried.
-- Exact `Decimal` parsing and preflight quantity/price/notional normalization that never increases quantity.
-- Process-local async market cache with explicit stale-data rejection.
-- Idempotent client order identifiers and existing ambiguous-timeout reconciliation through `OrderService`.
-- Five adapter gates plus startup gates; LIVE remains disabled by default.
-- Tolerant account parsing preserves raw values, normalizes only the supplied `sopt` fixture to internal `spot`, and represents missing/future values safely.
-- Exact-name process secret provider for `BINGX_API_KEY`, `BINGX_API_SECRET`, `BINGX_ENVIRONMENT`, `BINGX_BASE_URL`, and `BINGX_RECV_WINDOW`; representations are redacted and secrets are not persisted.
-- Atomic midpoint time-offset/single-flight abstraction exists, but no endpoint is connected until the server-time contract and timestamp error code are verified.
-- Per-scope rate-limit abstraction blocks openings when limits are unknown while preserving separately reviewed cancellation capacity; current documented values remain unavailable.
-- Circuit breaker blocks exposure increases after repeated failures while allowing callers to designate risk-reducing recovery operations.
-
-## Coverage totals
-
-| Product | Registry contracts | Verified | `BLOCKED_SPEC` | Live enabled |
-|---|---:|---:|---:|---:|
-| USDT-M perpetual | 9 | 0 | 9 | NO |
-| Coin-M perpetual | 0 | 0 | 0 | NO |
-| Spot | 0 | 0 | 0 | NO |
-| Perpetual copy-trading API | 0 | 0 | 0 | NO |
-| Spot copy-trading API | 0 | 0 | 0 | NO |
-| Public/private WebSocket | 0 | 0 | 0 | NO |
-
-## Required completion procedure
-
-1. Obtain an immutable current official documentation snapshot and record its retrieval date/commit or release identifier.
-2. Inventory every endpoint directly from that snapshot, including exact parameters, enums, response schema, permission scope, deprecation state, and rate limit.
-3. Review each implemented row above and correct any mismatch before enabling its feature.
-4. Add sanitized response fixtures and parser tests for every bot-used endpoint.
-5. Add endpoint-scoped, documented rate-limit buckets with emergency cancellation/close capacity.
-6. Implement server-time synchronization and one-time drift recovery only after verifying the current server-time endpoint and drift error code.
-7. Implement WebSockets only after verifying URLs, subscription/authentication payloads, compression, heartbeat, sequence, and recovery contracts.
-8. Certify in a BingX demo environment with test orders only. Automated tests must never place live orders.
-
-Until these steps are complete, the feature matrix must continue to label LIVE BingX support as **GATED / NOT CERTIFIED**.
-
-## Phased outstanding implementation checklist
-
-- [x] Preserve existing exchange interfaces, fake adapter, strategy services, idempotency, risk checks, and LIVE gates.
-- [x] Add machine-readable endpoint registry and registry/ledger validation.
-- [x] Add tolerant supplied `sopt` fixture parsing and safe unknown/missing account types.
-- [x] Add credential redaction, exact environment-name loading, URL/environment guards, and automated-LIVE refusal.
-- [x] Add contract-independent midpoint time-offset, single-flight refresh, fail-closed rate-limit, circuit-breaker, Decimal preflight, and stale-cache primitives.
-- [x] Add sanitized non-trading demo-readiness report; current result intentionally not certified.
-- [ ] `BLOCKED_SPEC`: verify server-time endpoint path, response field, timestamp error codes, and retry rule; then connect the time synchronizer.
-- [ ] `BLOCKED_SPEC`: verify rate-limit scopes/values and `Retry-After` behavior; then configure distributed Redis buckets.
-- [ ] `BLOCKED_SPEC`: verify and fixture every market/account/position/order parser in the registry.
-- [ ] `BLOCKED_SPEC`: inventory and implement bot-required open-order, history, fills, batch/cancel-all, test-order, close, and emergency endpoints.
-- [ ] `BLOCKED_SPEC`: verify public/private WebSocket URLs, auth/subscription schema, compression, heartbeat, sequence, and recovery behavior.
-- [ ] `BLOCKED_SPEC`: inventory official perpetual/spot copy-trading permissions and contracts.
-- [ ] `BLOCKED_SPEC`: inventory separate spot and Coin-M contracts; keep both clients inactive until configured and certified.
-- [ ] Implement durable unfinished-order/fill/validation persistence and startup/periodic reconciliation after read contracts are verified.
-- [ ] Connect stale market cache, circuit state, and reconciled readiness to strategy opening checks across workers.
-- [ ] Run read-only BingX demo certification, sanitized fixture capture, official test order, and an explicitly approved minimal demo-only lifecycle.
-- [ ] Run all backend/frontend/container tests, reconciliation/failure soak tests, security review, and operational sign-off.
+- Add sanitized parser fixtures for entries marked `UNIT_PENDING`.
+- Configure and review application rate caps for each deployment; supplied contracts contain no numeric exchange limits.
+- Configure public/private WebSocket URLs and subscription payloads; unverified private subscriptions remain disabled.
+- Apply migration `0004_bingx_execution_records`, complete startup reconciliation, and run the non-trading certification report.
+- Enable the test-order endpoint only with an explicit DEMO flag. Automated tests never contact BingX.
+- Perform controlled BingX DEMO verification before considering any order mutation.

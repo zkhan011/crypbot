@@ -1,6 +1,6 @@
 # API reference (current runnable endpoints)
 
-Public mock telemetry: `GET /health`, `GET /ready`, `GET /metrics`, `GET /api/v1/trading/dashboard`, `POST /api/v1/trading/mock-scenario/{scenario}`, and `GET /api/v1/trading/reports`.
+Public mock telemetry: `GET /health`, `GET /ready`, `GET /metrics`, `GET /api/v1/bingx/readiness`, `GET /api/v1/trading/dashboard`, `POST /api/v1/trading/mock-scenario/{scenario}`, and `GET /api/v1/trading/reports`. BingX readiness exposes only mode/gate/connectivity state and never credentials or account identifiers.
 
 Protected control-plane endpoints require `Authorization: Bearer <access_token>` returned by `POST /api/v1/auth/login`:
 
