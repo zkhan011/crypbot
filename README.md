@@ -115,3 +115,4 @@ Important safety note: mock market data is deterministic simulation data. It is 
 - [BACKUP_RESTORE.md](BACKUP_RESTORE.md)
 - [TENANT_ADMIN_GUIDE.md](TENANT_ADMIN_GUIDE.md)
 - [PEN_TEST_CHECKLIST.md](PEN_TEST_CHECKLIST.md)
+- [BingX API coverage and verification ledger](docs/bingx-api-coverage.md)

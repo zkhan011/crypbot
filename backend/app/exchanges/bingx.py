@@ -31,6 +31,7 @@ from app.exchanges.interfaces import (
     Position,
     SymbolMetadata,
 )
+from app.exchanges.safety import OrderValidationService
 
 
 class BingXError(RuntimeError):
@@ -45,6 +46,22 @@ class BingXError(RuntimeError):
 class BingXLiveTradingDisabled(BingXError):
     def __init__(self, reason: str) -> None:
         super().__init__("LIVE_TRADING_BLOCKED", reason)
+
+
+class BingXAuthenticationError(BingXError):
+    pass
+
+
+class BingXPermissionError(BingXError):
+    pass
+
+
+class BingXRateLimitError(BingXError):
+    pass
+
+
+class BingXMalformedResponseError(BingXError):
+    pass
 
 
 @dataclass(frozen=True)
@@ -108,6 +125,7 @@ class BingXClient:
         recv_window_ms: int = 5_000,
         http: httpx.AsyncClient | None = None,
         clock_ms: Callable[[], int] | None = None,
+        order_validator: OrderValidationService | None = None,
     ) -> None:
         if not base_url.startswith("https://"):
             raise ValueError("BingX base URL must use HTTPS")
@@ -124,6 +142,7 @@ class BingXClient:
         self._clock_ms = clock_ms or (lambda: time.time_ns() // 1_000_000)
         self.http = http or httpx.AsyncClient(timeout=float(timeout_seconds))
         self._owns_http = http is None
+        self.order_validator = order_validator or OrderValidationService()
 
     async def __aenter__(self) -> BingXClient:
         return self
@@ -156,14 +175,28 @@ class BingXClient:
         for attempt in range(attempts):
             try:
                 response = await self.http.request(method, f"{self.base_url}{path}", params=request_params, headers=headers)
-                if response.status_code == 429 or response.status_code >= 500:
+                if response.status_code == 401:
+                    raise BingXAuthenticationError("HTTP_401", "authentication failed")
+                if response.status_code == 403:
+                    raise BingXPermissionError("HTTP_403", "operation is not permitted")
+                if response.status_code == 429:
+                    raise BingXRateLimitError("HTTP_429", "rate limit exceeded", retryable=True)
+                if response.status_code >= 500:
                     raise BingXError(str(response.status_code), "temporary exchange or rate-limit failure", retryable=True)
-                response.raise_for_status()
-                payload = response.json()
+                if response.status_code >= 400:
+                    raise BingXError(f"HTTP_{response.status_code}", "exchange rejected request")
+                try:
+                    payload = response.json()
+                except ValueError:
+                    raise BingXMalformedResponseError("MALFORMED_RESPONSE", "exchange returned invalid JSON") from None
+                if not isinstance(payload, dict):
+                    raise BingXMalformedResponseError("MALFORMED_RESPONSE", "exchange response envelope is not an object")
                 code = str(payload.get("code", "0")) if isinstance(payload, dict) else "0"
                 if code != "0":
-                    raise BingXError(code, str(payload.get("msg") or "exchange rejected request"))
-                return payload.get("data") if isinstance(payload, dict) else payload
+                    raise BingXError(code, "exchange rejected request")
+                if "data" not in payload:
+                    raise BingXMalformedResponseError("MALFORMED_RESPONSE", "exchange response has no data field")
+                return payload["data"]
             except (httpx.TimeoutException, httpx.NetworkError) as exc:
                 error = BingXError("NETWORK", "exchange unavailable", retryable=True)
                 if attempt + 1 >= attempts:
@@ -257,6 +290,9 @@ class BingXClient:
 
     async def submit_order(self, request: OrderRequest) -> OrderResult:
         self.live_gates.require_all()
+        rules = await self.symbol_metadata(request.symbol)
+        reference_price = request.price or await self.price(request.symbol)
+        request, _validation = self.order_validator.validate_and_normalize(request, rules, reference_price=reference_price)
         order_type = {
             OrderType.MARKET: "MARKET",
             OrderType.LIMIT: "LIMIT",

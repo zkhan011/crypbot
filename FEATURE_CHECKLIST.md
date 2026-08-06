@@ -9,6 +9,8 @@ This checklist is intentionally conservative. **YES** means the current source c
 | BingX balance and open positions | YES | NO | YES | GATED | N/A | YES | YES | Signed REST calls implemented; encrypted credential runtime composition is incomplete. |
 | BingX order create/query/cancel | YES | NO | YES | GATED | N/A | YES | YES | Idempotent client ID and five explicit live gates; no real-order certification has been performed. |
 | BingX retry/error handling | YES | NO | YES | GATED | N/A | YES | YES | Safe reads retry transient failures; mutations are not blindly retried. WebSocket certification remains open. |
+| BingX Decimal order-rule normalization and minimum validation | YES | NO | YES | GATED | N/A | YES | YES | Quantity never rounds up; prices use side-aware ticks; full max/tier rules require verified endpoint fields. |
+| Market-data freshness cache | YES | NO | YES | GATED | N/A | YES | YES | Async-safe process-local cache rejects stale/missing snapshots; Redis/global worker coordination remains open. |
 | Copy signal and volume-momentum signal paths | YES | YES | YES | GATED | N/A | YES | YES | Volume logic uses market signals only, never artificial volume. |
 | Shared trade risk and emergency stop | YES | YES | YES | GATED | N/A | YES | YES | Existing mock checks are a subset of required production controls. |
 | Mock scenario center and notification preview | YES | YES | YES | N/A | N/A | YES | YES | Backend scenario selection is connected to the dashboard. |

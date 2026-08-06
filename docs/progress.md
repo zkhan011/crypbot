@@ -158,3 +158,11 @@
 - Added transport-level contract tests proving signing, internal account-ID non-disclosure, Decimal parsing, status mapping, error redaction, and fail-closed order behavior.
 - Extended the fake adapter with the same market-data interface so MOCK and LIVE use matching contracts.
 - Current status remains **not production-ready for real funds**. Official documentation access was blocked by the build environment proxy, and controlled BingX demo certification (including protective orders), WebSockets, credential runtime wiring, and reconciliation soak tests remain open.
+
+## 2026-08-06 BingX safety follow-up
+
+- Added an explicit BingX endpoint verification ledger rather than guessing undocumented paths, fields, permissions, or rate limits while the official site is inaccessible.
+- Added exact-Decimal order normalization and validation for symbol consistency, quantity steps/minimums, side-aware price ticks, trigger prices, and minimum notional. Normalization never increases quantity.
+- Added an async-safe process-local market cache that rejects missing or stale snapshots; cross-worker coordination remains outstanding.
+- Hardened HTTP and envelope handling so status errors and malformed responses cannot expose signed URLs, headers, keys, or exchange response bodies.
+- Added separate DEMO/LIVE environment, dry-run, final confirmation, product, cache, WebSocket-staleness, and reconciliation configuration defaults. LIVE now requires additional explicit startup gates.

@@ -23,6 +23,25 @@ def all_live_gates() -> BingXLiveGates:
     )
 
 
+def preflight_response(request: httpx.Request) -> httpx.Response | None:
+    if request.url.path.endswith("/contracts"):
+        return response(
+            request,
+            [
+                {
+                    "symbol": "BTC-USDT",
+                    "minQty": "0.001",
+                    "quantityPrecision": 3,
+                    "pricePrecision": 1,
+                    "tradeMinUSDT": "5",
+                }
+            ],
+        )
+    if request.url.path.endswith("/price"):
+        return response(request, {"symbol": "BTC-USDT", "price": "61000"})
+    return None
+
+
 @pytest.mark.asyncio
 async def test_public_market_data_uses_decimal_and_no_credentials() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
@@ -62,6 +81,9 @@ async def test_public_market_data_uses_decimal_and_no_credentials() -> None:
 @pytest.mark.asyncio
 async def test_private_request_is_signed_without_transmitting_internal_account_id() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
+        preflight = preflight_response(request)
+        if preflight is not None:
+            return preflight
         query = parse_qs(request.url.query.decode())
         assert request.headers["X-BX-APIKEY"] == "masked-test-key"
         assert "account_id" not in query
@@ -115,6 +137,9 @@ async def test_live_order_fails_closed_until_every_gate_passes() -> None:
 @pytest.mark.asyncio
 async def test_live_order_contract_and_status_mapping() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
+        preflight = preflight_response(request)
+        if preflight is not None:
+            return preflight
         query = parse_qs(request.url.query.decode())
         assert request.method == "POST"
         assert query["clientOrderID"] == ["safe-idempotency-key"]
@@ -160,6 +185,9 @@ async def test_live_order_contract_and_status_mapping() -> None:
 @pytest.mark.asyncio
 async def test_protective_order_requires_trigger_and_is_reduce_only() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
+        preflight = preflight_response(request)
+        if preflight is not None:
+            return preflight
         query = parse_qs(request.url.query.decode())
         assert query["type"] == ["STOP_MARKET"]
         assert query["stopPrice"] == ["59000"]
