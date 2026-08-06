@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-08-06T06:13:49.563964+00:00",
+  "environment": "DEMO",
+  "dry_run": true,
+  "live_trading_enabled": false,
+  "registry_valid": true,
+  "registry_errors": [],
+  "server_time": "IMPLEMENTED_NOT_CONTACTED",
+  "authentication": "NOT_RUN",
+  "balance": "NOT_RUN",
+  "contracts": "NOT_RUN",
+  "market_data": "NOT_RUN",
+  "order_validation": "LOCAL_TEST_ONLY",
+  "test_order": "IMPLEMENTED_BUT_DISABLED",
+  "demo_order": "NOT_RUN",
+  "final_reconciliation": "NOT_RUN",
+  "live_order_placed": false,
+  "certified": false
+}
