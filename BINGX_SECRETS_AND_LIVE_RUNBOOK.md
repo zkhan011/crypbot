@@ -145,6 +145,11 @@ configuration, reconciliation, final confirmation, or audit recording.
 LIVE must not be started from the current repository state because its readiness
 checklist still contains unresolved real-money release blockers.
 
+The backend enforces this statement: startup rejects production/staging and LIVE
+execution even when all environment flags are set. This prevents a configuration
+change from connecting the in-memory MOCK control plane to real funds. There is
+no supported override variable.
+
 ## Troubleshooting prices versus LIVE activation
 
 Public market prices and order execution are separate. Prices require no API key

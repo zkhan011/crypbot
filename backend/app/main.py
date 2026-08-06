@@ -43,7 +43,7 @@ bingx_public_market = BingXPublicMarketClient(settings.bingx_base_url, timeout_s
 fake_exchange = FakeExchangeClient()
 risk_engine = RiskEngine()
 trading_app = TradingApplication()
-control_plane = ControlPlane()
+control_plane = ControlPlane(seed_demo_users=settings.seed_demo_users)
 
 
 class VolumeExecutionRequest(BaseModel):

@@ -2,6 +2,13 @@
 
 **Status: NOT READY FOR REAL MONEY OR CUSTOMER CREDENTIALS.** This document is a release gate, not a promise.
 
+Startup now refuses both `CRYPBOT_ENVIRONMENT=production|staging` and
+`CRYPBOT_EXECUTION_MODE=LIVE` after validating their ordinary settings. This is
+intentional: configuration flags cannot turn the in-memory control plane into a
+durable production runtime. Remove this hard block only in the same reviewed
+change that wires durable identity, credential verification, approvals, risk,
+audit, reconciliation, jobs, and operational certification.
+
 | Area | Status | Required closure |
 |---|---|---|
 | Identity and RBAC | Partial | Tenant-scoped repository primitives exist; wire durable auth/session repositories into API runtime, then add refresh rotation, MFA, password reset, and session revocation. |

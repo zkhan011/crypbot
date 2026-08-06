@@ -183,14 +183,15 @@ class MockAIProviderAdapter:
 class ControlPlane:
     """In-memory authenticated control plane used only by the runnable MOCK demo."""
 
-    def __init__(self) -> None:
+    def __init__(self, *, seed_demo_users: bool = True) -> None:
         self.users: dict[str, User] = {}
         self.sessions: dict[str, Session] = {}
         self.audit_records: list[AuditRecord] = []
         self.audit_chain = AuditHashChain()
         self.drafts: dict[str, StrategyDraft] = {}
         self.ai_provider = MockAIProviderAdapter()
-        self._seed_users()
+        if seed_demo_users:
+            self._seed_users()
 
     def _seed_users(self) -> None:
         for email, name, role in (

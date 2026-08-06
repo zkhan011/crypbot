@@ -54,3 +54,7 @@ def test_audit_chain_verifies_control_plane_events():
     control_plane = ControlPlane()
     super_admin = logged_in(control_plane, "superadmin@example.local")
     assert control_plane.verify_audit_log(super_admin) == {"valid": True, "entries": 1}
+
+
+def test_demo_users_can_be_disabled_for_non_demo_runtime():
+    assert ControlPlane(seed_demo_users=False).users == {}
