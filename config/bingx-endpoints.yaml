@@ -1,0 +1,1312 @@
+{
+  "schema_version": 2,
+  "retrieved_at": "2026-08-06",
+  "authoritative_source": "user-provided BingX endpoint contract in task prompt",
+  "source_access": "LOCAL_PROMPT",
+  "endpoints": [
+    {
+      "operation": "server_time",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/server/time",
+      "authentication": "PUBLIC",
+      "required_parameters": [],
+      "optional_parameters": [],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "contracts",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/contracts",
+      "authentication": "PUBLIC",
+      "required_parameters": [],
+      "optional_parameters": [
+        "symbol"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "trading_rules",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v1/tradingRules",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "latest_price",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/price",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "depth",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/depth",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "limit"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "recent_trades",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/trades",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "limit"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "historical_trades",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v1/market/historicalTrades",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "limit",
+        "fromId"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "klines",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v3/quote/klines",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "symbol",
+        "interval",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "startTime",
+        "endTime",
+        "limit"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "mark_price_klines",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v1/market/markPriceKlines",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "symbol",
+        "interval",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "startTime",
+        "endTime",
+        "limit"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "premium_index",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/premiumIndex",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "funding_rate_history",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/fundingRate",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "startTime",
+        "endTime",
+        "limit"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "open_interest",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/openInterest",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "ticker_24h",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/ticker",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "ticker_price",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v1/ticker/price",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "book_ticker",
+      "product": "USDT_M_PERPETUAL",
+      "module": "market_data",
+      "method": "GET",
+      "path": "/openApi/swap/v2/quote/bookTicker",
+      "authentication": "PUBLIC",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "market_data",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "balance",
+      "product": "USDT_M_PERPETUAL",
+      "module": "account",
+      "method": "GET",
+      "path": "/openApi/swap/v2/user/balance",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "account",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "positions",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position",
+      "method": "GET",
+      "path": "/openApi/swap/v2/user/positions",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "income",
+      "product": "USDT_M_PERPETUAL",
+      "module": "account",
+      "method": "GET",
+      "path": "/openApi/swap/v2/user/income",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "incomeType",
+        "startTime",
+        "endTime",
+        "limit",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "account",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "income_export",
+      "product": "USDT_M_PERPETUAL",
+      "module": "account",
+      "method": "GET",
+      "path": "/openApi/swap/v2/user/income/export",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "account",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "INTERNAL_ONLY",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "commission_rate",
+      "product": "USDT_M_PERPETUAL",
+      "module": "account",
+      "method": "GET",
+      "path": "/openApi/swap/v2/user/commissionRate",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "account",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "get_position_mode",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "GET",
+      "path": "/openApi/swap/v1/positionSide/dual",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "set_position_mode",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "POST",
+      "path": "/openApi/swap/v1/positionSide/dual",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "dualSidePosition",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "get_margin_type",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "GET",
+      "path": "/openApi/swap/v2/trade/marginType",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "set_margin_type",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "POST",
+      "path": "/openApi/swap/v2/trade/marginType",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "symbol",
+        "marginType",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "get_leverage",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "GET",
+      "path": "/openApi/swap/v2/trade/leverage",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "set_leverage",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "POST",
+      "path": "/openApi/swap/v2/trade/leverage",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "symbol",
+        "side",
+        "leverage",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "test_order",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "POST",
+      "path": "/openApi/swap/v2/trade/order/test",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "symbol",
+        "side",
+        "positionSide",
+        "type",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "quantity",
+        "price",
+        "stopPrice",
+        "timeInForce",
+        "reduceOnly",
+        "clientOrderID",
+        "workingType",
+        "priceProtect",
+        "closePosition",
+        "takeProfit",
+        "stopLoss",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_DEMO_ONLY",
+      "test_status": "MOCK_TEST_ENDPOINT"
+    },
+    {
+      "operation": "place_order",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "POST",
+      "path": "/openApi/swap/v2/trade/order",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "symbol",
+        "side",
+        "positionSide",
+        "type",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "quantity",
+        "price",
+        "stopPrice",
+        "timeInForce",
+        "reduceOnly",
+        "clientOrderID",
+        "workingType",
+        "priceProtect",
+        "closePosition",
+        "takeProfit",
+        "stopLoss",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_GATED",
+      "test_status": "MOCK_TRANSPORT_NO_LIVE"
+    },
+    {
+      "operation": "query_order",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "GET",
+      "path": "/openApi/swap/v2/trade/order",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "orderId",
+        "clientOrderID",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "cancel_order",
+      "product": "USDT_M_PERPETUAL",
+      "module": "cancellation",
+      "method": "DELETE",
+      "path": "/openApi/swap/v2/trade/order",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "orderId",
+        "clientOrderID",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "cancellation",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_REDUCTION_GATED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "batch_place",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "POST",
+      "path": "/openApi/swap/v2/trade/batchOrders",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "batchOrders",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_GATED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "batch_cancel",
+      "product": "USDT_M_PERPETUAL",
+      "module": "cancellation",
+      "method": "DELETE",
+      "path": "/openApi/swap/v2/trade/batchOrders",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "symbol",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "orderIdList",
+        "clientOrderIdList",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "cancellation",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_REDUCTION_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "open_orders",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "GET",
+      "path": "/openApi/swap/v2/trade/openOrders",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "order_history",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "GET",
+      "path": "/openApi/swap/v2/trade/allOrders",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "orderId",
+        "startTime",
+        "endTime",
+        "limit",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "fills",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "GET",
+      "path": "/openApi/swap/v2/trade/allFillOrders",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "orderId",
+        "startTime",
+        "endTime",
+        "limit",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT"
+    },
+    {
+      "operation": "cancel_all",
+      "product": "USDT_M_PERPETUAL",
+      "module": "cancellation",
+      "method": "DELETE",
+      "path": "/openApi/swap/v2/trade/allOpenOrders",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "cancellation",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_REDUCTION_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "close_all_positions",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "POST",
+      "path": "/openApi/swap/v2/trade/closeAllPositions",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_CONFIRMATION_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "close_position",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "POST",
+      "path": "/openApi/swap/v1/trade/closePosition",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "positionId",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_REDUCTION_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "cancel_replace",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "POST",
+      "path": "/openApi/swap/v1/trade/cancelReplace",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "schema_not_supplied"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "DISABLED_SCHEMA",
+      "test_status": "NONE"
+    },
+    {
+      "operation": "batch_cancel_replace",
+      "product": "USDT_M_PERPETUAL",
+      "module": "order",
+      "method": "POST",
+      "path": "/openApi/swap/v1/trade/batchCancelReplace",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "schema_not_supplied"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "order",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "DISABLED_SCHEMA",
+      "test_status": "NONE"
+    },
+    {
+      "operation": "cancel_all_after",
+      "product": "USDT_M_PERPETUAL",
+      "module": "cancellation",
+      "method": "POST",
+      "path": "/openApi/swap/v2/trade/cancelAllAfter",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "countdownTime",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "cancellation",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_REDUCTION_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "position_margin",
+      "product": "USDT_M_PERPETUAL",
+      "module": "position_control",
+      "method": "POST",
+      "path": "/openApi/swap/v2/trade/positionMargin",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "symbol",
+        "positionSide",
+        "amount",
+        "type",
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "position_control",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED_GATED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "force_orders",
+      "product": "USDT_M_PERPETUAL",
+      "module": "account",
+      "method": "GET",
+      "path": "/openApi/swap/v2/trade/forceOrders",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "symbol",
+        "recvWindow"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "account",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "IMPLEMENTED",
+      "test_status": "UNIT_PENDING"
+    },
+    {
+      "operation": "copy_current_track",
+      "product": "USDT_M_PERPETUAL",
+      "module": "copy_trading",
+      "method": "GET",
+      "path": "/openApi/copyTrading/v1/swap/trace/currentTrack",
+      "authentication": "SIGNED",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "schema_not_supplied"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "copy_trading",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "safe read",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "DISABLED_SCHEMA",
+      "test_status": "ERROR_TEST"
+    },
+    {
+      "operation": "copy_close_track",
+      "product": "USDT_M_PERPETUAL",
+      "module": "copy_trading",
+      "method": "POST",
+      "path": "/openApi/copyTrading/v1/swap/trace/closeTrackOrder",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "schema_not_supplied"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "copy_trading",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "DISABLED_SCHEMA",
+      "test_status": "ERROR_TEST"
+    },
+    {
+      "operation": "copy_set_tpsl",
+      "product": "USDT_M_PERPETUAL",
+      "module": "copy_trading",
+      "method": "POST",
+      "path": "/openApi/copyTrading/v1/swap/trace/setTPSL",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "schema_not_supplied"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "copy_trading",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "DISABLED_SCHEMA",
+      "test_status": "ERROR_TEST"
+    },
+    {
+      "operation": "spot_copy_sell",
+      "product": "SPOT",
+      "module": "spot_copy_trading",
+      "method": "POST",
+      "path": "/openApi/copyTrading/v1/spot/trader/sellOrder",
+      "authentication": "SIGNED_TRADE",
+      "required_parameters": [
+        "timestamp"
+      ],
+      "optional_parameters": [
+        "schema_not_supplied"
+      ],
+      "request_schema": "prompt-defined parameters; method validates applicable fields",
+      "response_schema": "typed local parser or opaque internal result",
+      "rate_limit_scope": "spot_copy_trading",
+      "rate_limit_value": "configurable_application_limit",
+      "idempotency": "client ID or reconciliation required",
+      "environments": [
+        "DEMO",
+        "LIVE"
+      ],
+      "source_reference": "user-provided endpoint contract 2026-08-06",
+      "implementation_status": "DISABLED_SCHEMA",
+      "test_status": "ERROR_TEST"
+    }
+  ]
+}
